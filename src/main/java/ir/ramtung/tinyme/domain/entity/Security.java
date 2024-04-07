@@ -29,11 +29,13 @@ public class Security {
         Order order;
         if (enterOrderRq.getPeakSize() == 0)
             order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder, enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity());
+                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
+                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), false);
         else
             order = new IcebergOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getPeakSize());
+                    enterOrderRq.getEntryTime(), enterOrderRq.getPeakSize(),
+                    enterOrderRq.getMinimumExecutionQuantity(), false);
 
         return matcher.execute(order);
     }
@@ -57,7 +59,7 @@ public class Security {
             throw new InvalidRequestException(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER);
         if (order.getMinimumExecutionQuantity() != updateOrderRq.getMinimumExecutionQuantity())
             throw new InvalidRequestException(Message.CANNOT_MODIFY_MINIMUM_EXECUTION_QUANTITY);
-            
+
         if (updateOrderRq.getSide() == Side.SELL &&
                 !order.getShareholder().hasEnoughPositionsOn(this,
                 orderBook.totalSellQuantityByShareholder(order.getShareholder()) - order.getQuantity() + updateOrderRq.getQuantity()))
