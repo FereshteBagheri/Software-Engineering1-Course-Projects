@@ -60,6 +60,14 @@ public class Order {
         this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), minimumExecutionQuantity, minimumLimitExecuted);
     }
 
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder) {
+        this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), 0, false);
+    }
+
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, 0, false);
+    }
+
     public Order snapshot() {
         return new Order(orderId, security, side, quantity, price, broker, shareholder, entryTime, OrderStatus.SNAPSHOT, minimumExecutionQuantity, minimumLimitExecuted);
     }
