@@ -1,5 +1,7 @@
 package ir.ramtung.tinyme.messaging;
 
+import java.util.List;
+
 public class Message {
     public static final String INVALID_ORDER_ID = "Invalid order ID";
     public static final String ORDER_QUANTITY_NOT_POSITIVE = "Order quantity is not-positive";
@@ -16,4 +18,5 @@ public class Message {
     public static final String SELLER_HAS_NOT_ENOUGH_POSITIONS = "Seller has not enough positions";
     public static final String INVALID_MINIMUM_EXECUTION_QUANTITY = "Minimum execution quantity is out of range";
     public static final String MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED = "Minimum execution quantity not matched";
+    public static final String CANNOT_MODIFY_MINIMUM_EXECUTION_QUANTITY = "Cannot modify minimum execution quantity";
 }
