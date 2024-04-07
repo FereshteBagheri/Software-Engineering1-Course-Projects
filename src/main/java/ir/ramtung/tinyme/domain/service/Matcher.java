@@ -61,8 +61,11 @@ public class Matcher {
         MatchResult result = match(order);
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
-
         if (result.remainder().getQuantity() > 0) {
+            if (result.remainder().getQuantity() < (order.getQuantity() - order.getMinimumExecutionQuantity())){
+                rollbackTrades(order, result.trades());
+                return MatchResult.minimumNotMatched();
+            }
             if (order.getSide() == Side.BUY) {
                 if (!order.getBroker().hasEnoughCredit(order.getValue())) {
                     rollbackTrades(order, result.trades());
