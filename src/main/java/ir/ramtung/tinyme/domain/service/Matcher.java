@@ -62,7 +62,7 @@ public class Matcher {
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
         if (result.remainder().getQuantity() > 0) {
-            if (!result.remainder().getMinimumQuantityExecuted() && (result.remainder().getQuantity() > (order.getQuantity() - order.getMinimumExecutionQuantity()))){
+            if (!result.remainder().isMinimumQuantityExecuted() && (result.remainder().getQuantity() > (order.getQuantity() - order.getMinimumExecutionQuantity()))){
                 rollbackTrades(order, result.trades());
                 return MatchResult.minimumNotMatched();
             }
@@ -76,7 +76,7 @@ public class Matcher {
             order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
 
-        if (!result.remainder().getMinimumQuantityExecuted())
+        if (!result.remainder().isMinimumQuantityExecuted())
             result.remainder().seMinimumQuantityExecuted();
             
         if (!result.trades().isEmpty()) {
