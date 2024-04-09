@@ -176,6 +176,18 @@ public class MinimumExecutionQuantityTest {
         assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
         assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
     }
+
+    @Test
+    void sell_order_with_minimum_execution_quantity_fails() {
+        Order new_order = new Order(11, security, Side.SELL,
+                400, 15800, broker2, shareholder,
+                LocalDateTime.now(), 360, false);
+        MatchResult result = matcher.execute(new_order);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.MINIMUM_NOT_MATCHED);
+        assertThat(result.remainder()).isEqualTo(null);
+        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
+    }
     @Test
     void validate_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
