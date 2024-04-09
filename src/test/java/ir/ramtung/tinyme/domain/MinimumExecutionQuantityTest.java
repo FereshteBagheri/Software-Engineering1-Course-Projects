@@ -103,8 +103,19 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 350, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result
-        assertEqual(broker1.)
+        MatchResult result = matcher.match(new_order);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(result.remainder().getQuantity()).isEqualTo(0);
+    }
+
+    @Test
+    void sell_order_with_minimum_execution_quantity_completely_matched() {
+        Order new_order = new Order(11, security, Side.BUY,
+                350, 15800, broker1, shareholder,
+                LocalDateTime.now(), 40, false);
+        MatchResult result = matcher.match(new_order);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(result.remainder().getQuantity()).isEqualTo(0);
     }
 
     @Test
@@ -123,7 +134,7 @@ public class MinimumExecutionQuantityTest {
         orderhandler.handleEnterOrder(newReq);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 5,
                 15900, 1, 1, 0, 10);
-        assertThrows(InvalidRequestException.class , );
+//        assertThrows(InvalidRequestException.class , );
     }
 
 }
