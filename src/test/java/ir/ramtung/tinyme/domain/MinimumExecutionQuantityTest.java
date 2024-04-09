@@ -110,8 +110,8 @@ public class MinimumExecutionQuantityTest {
 
     @Test
     void sell_order_with_minimum_execution_quantity_completely_matched() {
-        Order new_order = new Order(11, security, Side.BUY,
-                350, 15800, broker1, shareholder,
+        Order new_order = new Order(11, security, Side.SELL,
+                300, 15600, broker2, shareholder,
                 LocalDateTime.now(), 40, false);
         MatchResult result = matcher.match(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
