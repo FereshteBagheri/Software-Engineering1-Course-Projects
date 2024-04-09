@@ -96,7 +96,6 @@ public class MinimumExecutionQuantityTest {
     void validate_minimum_execution_quantity_works() {
         EnterOrderRq valid = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
-        assertThrows(InvalidRequestException.class , )
     }
 
     @Test
@@ -107,6 +106,8 @@ public class MinimumExecutionQuantityTest {
         MatchResult result
         assertEqual(broker1.)
     }
+
+    @Test
     void validate_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 500);
@@ -122,6 +123,7 @@ public class MinimumExecutionQuantityTest {
         orderhandler.handleEnterOrder(newReq);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 5,
                 15900, 1, 1, 0, 10);
+        assertThrows(InvalidRequestException.class , );
     }
 
 }
