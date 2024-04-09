@@ -73,6 +73,11 @@ public class OrderBook {
         putBack(sellOrder);
     }
 
+    public void restoreBuyOrder(Order buyOrder) {
+        removeByOrderId(Side.Buy, buyOrder.getOrderId());
+        putBack(buyOrder);
+    }
+
     public boolean hasOrderOfType(Side side) {
         return !getQueue(side).isEmpty();
     }
