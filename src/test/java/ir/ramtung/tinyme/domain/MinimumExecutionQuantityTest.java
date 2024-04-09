@@ -119,6 +119,15 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
+    void buy_order_with_minimum_execution_quantity_partially_matched() {
+        Order new_order = new Order(11, security, Side.BUY,
+                400, 15800, broker1, shareholder,
+                LocalDateTime.now(), 40, false);
+        MatchResult result = matcher.match(new_order);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(result.remainder().getQuantity()).isEqualTo(50);
+    }
+    @Test
     void validate_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 500);
