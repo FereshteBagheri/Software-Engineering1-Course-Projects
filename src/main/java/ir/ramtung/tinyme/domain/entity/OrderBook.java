@@ -74,7 +74,7 @@ public class OrderBook {
     }
 
     public void restoreBuyOrder(Order buyOrder) {
-        removeByOrderId(Side.Buy, buyOrder.getOrderId());
+        removeByOrderId(Side.BUY, buyOrder.getOrderId());
         putBack(buyOrder);
     }
 
