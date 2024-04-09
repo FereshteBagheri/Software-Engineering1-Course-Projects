@@ -65,7 +65,7 @@ public class DataLoader {
 
     private void loadBrokers() throws Exception {
         brokerRepository.clear();
-      try (Reader reader = new FileReader(brokerCsvResource.getFile())) {
+        try (Reader reader = new FileReader(brokerCsvResource.getFile())) {
             try (CSVReader csvReader = new CSVReaderBuilder(reader).withSkipLines(1).build()) {
                 String[] line;
                 while ((line = csvReader.readNext()) != null) {
@@ -136,35 +136,20 @@ public class DataLoader {
                     Security security = securityRepository.findSecurityByIsin(line[1]);
                     Broker broker = brokerRepository.findBrokerById(Long.parseLong(line[5]));
                     Shareholder shareholder = shareholderRepository.findShareholderById(Long.parseLong(line[6]));
-//orderId,isin,side,quantity,price,brokerId,shareholderId,entryTime,peakSize,displayedQuantity
-//0       1    2    3        4     5        6             7         8        9
                     int peakSize = Integer.parseInt(line[8]);
-                    Order order;
-                    if (peakSize == 0) {
-                        order = new Order(
-                                Long.parseLong(line[0]),
-                                security,
-                                Side.parse(line[2]),
-                                Integer.parseInt(line[3]),
-                                Integer.parseInt(line[4]),
-                                broker,
-                                shareholder,
-                                LocalDateTime.parse(line[7]),
-                                OrderStatus.QUEUED);
-                    } else {
-                        order = new IcebergOrder(
-                                Long.parseLong(line[0]),
-                                security,
-                                Side.parse(line[2]),
-                                Integer.parseInt(line[3]),
-                                Integer.parseInt(line[4]),
-                                broker,
-                                shareholder,
-                                LocalDateTime.parse(line[7]),
-                                Integer.parseInt(line[8]),
-                                Integer.parseInt(line[9]),
-                                OrderStatus.QUEUED);
-                    }
+                    Order order = Order.builder()
+                            .orderId(Long.parseLong(line[0]))
+                            .security(security)
+                            .side(Side.valueOf(line[2]))
+                            .quantity(Integer.parseInt(line[3]))
+                            .price(Integer.parseInt(line[4]))
+                            .broker(broker)
+                            .shareholder(shareholder)
+                            .entryTime(LocalDateTime.parse(line[7]))
+                            .status(OrderStatus.QUEUED)
+                            .minimumExecutionQuantity(peakSize)
+                            .minimumQuantityExecuted(Integer.parseInt(line[9]) > 0)
+                            .build();
                     orders.addFirst(order);
                 }
             }
@@ -244,13 +229,9 @@ public class DataLoader {
                 .add(String.valueOf(order.getPrice()))
                 .add(String.valueOf(order.getBroker().getBrokerId()))
                 .add(String.valueOf(order.getShareholder().getShareholderId()))
-                .add(order.getEntryTime().toString());
-        if (order instanceof IcebergOrder icebergOrder) {
-            orderJoiner.add(String.valueOf(icebergOrder.getPeakSize()))
-                    .add(String.valueOf(icebergOrder.getDisplayedQuantity()));
-        } else {
-            orderJoiner.add("0").add("0");
-        }
+                .add(order.getEntryTime().toString())
+                .add(String.valueOf(order.getMinimumExecutionQuantity()))
+                .add(order.isMinimumQuantityExecuted() ? "1" : "0");
         return orderJoiner.toString();
     }
 
