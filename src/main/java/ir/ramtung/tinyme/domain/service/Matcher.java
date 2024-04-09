@@ -48,6 +48,7 @@ public class Matcher {
 
     private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){
         newOrder.getBroker().increaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
+
         trades.forEach(trade -> trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
 
         ListIterator<Trade> it = trades.listIterator(trades.size());
@@ -57,13 +58,13 @@ public class Matcher {
     }
 
     private void rollbackSell(Order newOrder, LinkedList<Trade> trades){
-        assert newOrder.getSide() == Side.SELL;
         newOrder.getBroker().decreaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
 
         trades.forEach(trade -> trade.getBuy().getBroker().increaseCreditBy(trade.getTradedValue()));
+
         ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
-            newOrder.getSecurity().getOrderBook().restoreBuyOrder(it.previous().getSell());
+            newOrder.getSecurity().getOrderBook().restoreBuyOrder(it.previous().getBuy());
         }
     }
 
