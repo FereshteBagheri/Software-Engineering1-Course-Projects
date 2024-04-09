@@ -5,12 +5,16 @@ import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
+import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.messaging.Message;
+import ir.ramtung.tinyme.messaging.event.OrderRejectedEvent;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.engine.support.discovery.SelectorResolver;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -23,6 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(MockedJMSTestConfig.class)
@@ -37,7 +42,9 @@ public class MinimumExecutionQuantityTest {
     @Autowired
     private Matcher matcher;
     @Autowired
-    OrderHandler orderhandler;
+    EventPublisher eventPublisher;
+    @Autowired
+    OrderHandler orderHandler;
 
 
 
@@ -175,6 +182,15 @@ public class MinimumExecutionQuantityTest {
                 15450, 1, 1, 0, 500);
         EnterOrderRq newReq2 = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, -10);
+        orderHandler.handleEnterOrder(newReq);
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+
+
+        // Get the captured event and assert its properties
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+//        assertThat(outputEvent.getOrderId()).isEqualTo(-1);
+        assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isTrue();
     }
 
 
@@ -183,7 +199,7 @@ public class MinimumExecutionQuantityTest {
     void update_order_request_with_same_minimum() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
-        orderhandler.handleEnterOrder(newReq);
+        orderHandler.handleEnterOrder(newReq);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 5,
                 15900, 1, 1, 0, 10);
 //        assertThrows(InvalidRequestException.class , );
