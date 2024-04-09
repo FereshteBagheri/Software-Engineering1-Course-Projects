@@ -25,7 +25,8 @@ public class Order {
     @Builder.Default
     protected OrderStatus status = OrderStatus.NEW;
     protected int minimumExecutionQuantity;
-    protected boolean minimumQuantityExecuted;
+    @Builder.Default
+    protected boolean minimumQuantityExecuted = false;
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, int minimumExecutionQuantity, boolean minimumQuantityExecuted) {
         this.orderId = orderId;
