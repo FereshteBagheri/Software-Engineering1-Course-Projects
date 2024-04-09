@@ -220,12 +220,16 @@ public class MinimumExecutionQuantityTest {
 
     @Test
     void update_order_request_with_same_minimum() {
-        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0, 10);
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
+                15800, 1, 1, 0, 40);
         orderHandler.handleEnterOrder(newReq);
-        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 5,
-                15900, 1, 1, 0, 10);
-//        assertThrows(InvalidRequestException.class , );
+        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 60,
+                15800, 1, 1, 0, 40);
+        orderHandler.handleEnterOrder(updateReq);
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isFalse();
     }
 
 
