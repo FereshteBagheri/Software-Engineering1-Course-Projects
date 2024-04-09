@@ -78,11 +78,12 @@ public class Matcher {
     }
 
     public MatchResult execute(Order order) {
+        int previous_quantity = order.getQuantity();
         MatchResult result = match(order);
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
         if (result.remainder().getQuantity() > 0) {
-            if (!result.remainder().isMinimumQuantityExecuted() && (result.remainder().getQuantity() > (order.getQuantity() - order.getMinimumExecutionQuantity()))){
+            if (!result.remainder().isMinimumQuantityExecuted() && (result.remainder().getQuantity() > (previous_quantity - order.getMinimumExecutionQuantity()))){
                 rollbackTrades(order, result.trades());
                 return MatchResult.minimumNotMatched();
             }
@@ -104,7 +105,7 @@ public class Matcher {
             System.out.println(result.remainder().isMinimumQuantityExecuted() + "here3");
 
         }
-            
+
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {
                 trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
