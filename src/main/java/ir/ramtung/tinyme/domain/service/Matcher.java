@@ -97,14 +97,9 @@ public class Matcher {
 
             order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
-        System.out.println("hereeee");
-        System.out.println(result.remainder().isMinimumQuantityExecuted());
-        if (!result.remainder().isMinimumQuantityExecuted()) {
-            System.out.println("here2" + result.remainder().isMinimumQuantityExecuted());
-            result.remainder().setMinimumQuantityExecuted();
-            System.out.println(result.remainder().isMinimumQuantityExecuted() + "here3");
 
-        }
+        if (!result.remainder().isMinimumQuantityExecuted())
+            result.remainder().setMinimumQuantityExecuted();
 
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {

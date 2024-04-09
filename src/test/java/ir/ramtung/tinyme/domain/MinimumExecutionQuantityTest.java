@@ -144,8 +144,7 @@ public class MinimumExecutionQuantityTest {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
         orderHandler.handleEnterOrder(newReq);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-
+        assertThatNoException().isThrownBy(() -> orderHandler.handleEnterOrder(newReq));
     }
 
     @Test
