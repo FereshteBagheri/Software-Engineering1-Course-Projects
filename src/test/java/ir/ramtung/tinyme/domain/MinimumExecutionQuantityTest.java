@@ -10,6 +10,7 @@ import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -35,6 +36,10 @@ public class MinimumExecutionQuantityTest {
     private List<Order> orders;
     @Autowired
     private Matcher matcher;
+    @Autowired
+    OrderHandler orderhandler;
+
+
 
     @BeforeEach
     void setupOrderBook() {
@@ -60,10 +65,63 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void create_enter_order_request() {
+    void create_enter_order_request_with_minimum() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
-        assertEquals(newReq.getMinimumExecutionQuantity(), 10);
+        assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(10);
+    }
+
+    @Test
+    void create_enter_order_request_without_minimum() {
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0);
+        assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
+    }
+
+    @Test
+    void create_update_order_request_with_minimum() {
+        EnterOrderRq newReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, 10);
+        assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(10);
+    }
+
+    @Test
+    void create_update_order_request_without_minimum() {
+        EnterOrderRq newReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0);
+        assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
+    }
+
+    @Test
+    void validate_minimum_execution_quantity_works() {
+        EnterOrderRq valid = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, 10);
+        assertThrows(InvalidRequestException.class , )
+    }
+
+    @Test
+    void buy_order_with_minimum_execution_quantity_completely_matched() {
+        Order new_order = new Order(11, security, Side.BUY,
+                350, 15800, broker1, shareholder,
+                LocalDateTime.now(), 40, false);
+        MatchResult result
+        assertEqual(broker1.)
+    }
+    void validate_minimum_execution_quantity_fails() {
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, 500);
+        EnterOrderRq newReq2 = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, -10);
+    }
+
+
+    @Test
+    void update_order_request_with_same_minimum() {
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, 10);
+        orderhandler.handleEnterOrder(newReq);
+        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 5,
+                15900, 1, 1, 0, 10);
     }
 
 }
