@@ -188,7 +188,7 @@ public class MinimumExecutionQuantityTest {
         MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 11)).isEqualTo(null);
     }
 
 
@@ -213,7 +213,7 @@ public class MinimumExecutionQuantityTest {
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
         assertThat(orderBook.getSellQueue().peek()).isEqualTo(result.remainder());
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 11)).isNotEqualTo(null);
     }
 
     @Test
@@ -238,7 +238,7 @@ public class MinimumExecutionQuantityTest {
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
         assertThat(orderBook.getSellQueue().peek()).isEqualTo(result.remainder());
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 11)).isNotEqualTo(null);
 
     }
 
