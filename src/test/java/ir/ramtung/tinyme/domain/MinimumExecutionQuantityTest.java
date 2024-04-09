@@ -1,8 +1,6 @@
 package ir.ramtung.tinyme.domain;
 
 
-package ir.ramtung.tinyme.domain;
-
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
