@@ -122,5 +122,5 @@ public class Order {
 
     public int getTotalQuantity() { return quantity; }
 
-    public void seMinimumQuantityExecuted() { minimumQuantityExecuted = true; }
+    public void setMinimumQuantityExecuted() { minimumQuantityExecuted = true; }
 }

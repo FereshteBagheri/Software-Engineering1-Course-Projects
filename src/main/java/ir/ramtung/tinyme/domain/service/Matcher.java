@@ -77,7 +77,7 @@ public class Matcher {
         }
 
         if (!result.remainder().isMinimumQuantityExecuted())
-            result.remainder().seMinimumQuantityExecuted();
+            result.remainder().setMinimumQuantityExecuted();
             
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {
