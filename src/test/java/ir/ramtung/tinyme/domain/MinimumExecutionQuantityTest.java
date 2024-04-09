@@ -116,7 +116,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 350, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
     }
@@ -126,7 +126,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 300, 15600, broker2, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
     }
@@ -137,7 +137,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 350, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
     }
@@ -147,7 +147,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15700, broker1, shareholder,
                 LocalDateTime.now(), 304, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
     }
@@ -157,7 +157,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15700, broker1, shareholder,
                 LocalDateTime.now(), 250, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
     }
@@ -166,7 +166,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.match(new_order);
+        MatchResult result = matcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
     }
@@ -216,7 +216,14 @@ public class MinimumExecutionQuantityTest {
         assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isTrue();
     }
 
-
+    @Test
+    void check_status_of_order_after_minimum_execution_quantity_matched() {
+        Order new_order = new Order(11, security, Side.BUY,
+                400, 15800, broker1, shareholder,
+                LocalDateTime.now(), 40, false);
+        MatchResult result = matcher.execute(new_order);
+        assertThat(result.remainder().isMinimumQuantityExecuted()).isEqualTo(true);
+    }
 
     @Test
     void update_order_request_with_same_minimum() {

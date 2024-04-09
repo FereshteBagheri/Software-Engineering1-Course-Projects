@@ -93,11 +93,17 @@ public class Matcher {
                 }
                 order.getBroker().decreaseCreditBy(order.getValue());
             }
+
             order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
-
-        if (!result.remainder().isMinimumQuantityExecuted())
+        System.out.println("hereeee");
+        System.out.println(result.remainder().isMinimumQuantityExecuted());
+        if (!result.remainder().isMinimumQuantityExecuted()) {
+            System.out.println("here2" + result.remainder().isMinimumQuantityExecuted());
             result.remainder().setMinimumQuantityExecuted();
+            System.out.println(result.remainder().isMinimumQuantityExecuted() + "here3");
+
+        }
             
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {
