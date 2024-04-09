@@ -101,8 +101,14 @@ public class MinimumExecutionQuantityTest {
 
     @Test
     void validate_minimum_execution_quantity_works() {
-        EnterOrderRq valid = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
+        orderHandler.handleEnterOrder(newReq);
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isFalse();
+
     }
 
     @Test
@@ -189,19 +195,24 @@ public class MinimumExecutionQuantityTest {
         assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
     }
     @Test
-    void validate_minimum_execution_quantity_fails() {
+    void validate_negative_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0, 500);
-        EnterOrderRq newReq2 = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, -10);
         orderHandler.handleEnterOrder(newReq);
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
-
-
-        // Get the captured event and assert its properties
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
-//        assertThat(outputEvent.getOrderId()).isEqualTo(-1);
+        assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isTrue();
+    }
+
+    @Test
+    void validate_maximum_minimum_execution_quantity_fails() {
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+                15450, 1, 1, 0, 500);
+        orderHandler.handleEnterOrder(newReq);
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getErrors().contains(Message.INVALID_MINIMUM_EXECUTION_QUANTITY)).isTrue();
     }
 
