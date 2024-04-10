@@ -1,6 +1,5 @@
 package ir.ramtung.tinyme.domain;
 
-
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
@@ -16,7 +15,6 @@ import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.platform.engine.support.discovery.SelectorResolver;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +27,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -55,28 +52,6 @@ public class MinimumExecutionQuantityTest {
     @Autowired
     ShareholderRepository shareholderRepository;
 
-
-    public void printOrderQueues(OrderBook orderBook) {
-        System.out.println("Buy Queue:");
-        for (Order order : orderBook.getBuyQueue()) {
-            System.out.println("Order ID: " + order.getOrderId());
-            System.out.println("Side: " + order.getSide());
-            System.out.println("Quantity: " + order.getQuantity());
-            System.out.println("Broker: " + order.getBroker().getBrokerId());
-            System.out.println("---------------------------------");
-        }
-
-        System.out.println("Sell Queue:");
-        for (Order order : orderBook.getSellQueue()) {
-            System.out.println("Order ID: " + order.getOrderId());
-            System.out.println("Side: " + order.getSide());
-            System.out.println("Quantity: " + order.getQuantity());
-            System.out.println("Broker: " + order.getBroker().getBrokerId());
-            System.out.println("---------------------------------");
-        }
-    }
-
-
     @BeforeEach
     void setupOrderBook() {
         securityRepository.clear();
@@ -88,7 +63,6 @@ public class MinimumExecutionQuantityTest {
         shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
         shareholderRepository.addShareholder(shareholder);
-
 
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
@@ -113,7 +87,7 @@ public class MinimumExecutionQuantityTest {
 
     @Test
     void create_enter_order_request_with_minimum() {
-        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 10);
         assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(10);
     }
@@ -140,11 +114,22 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void validate_minimum_execution_quantity_works() {
+    void new_order_req_with_minimum_execution_quantity_enters_orderBook() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0, 10);
-        orderHandler.handleEnterOrder(newReq);
+                15800, 1, 1, 0, 10);
         assertThatNoException().isThrownBy(() -> orderHandler.handleEnterOrder(newReq));
+        assertThat(orderBook.getBuyQueue().peek().getOrderId()).isEqualTo(11);
+        assertThat(orderBook.getBuyQueue().peek().getQuantity()).isEqualTo(140);
+    }
+
+    @Test
+    void new_order_req_with_minimum_execution_quantity_is_rejected() {
+        EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
+                15800, 1, 1, 0, 400);
+        assertThatNoException().isThrownBy(() -> orderHandler.handleEnterOrder(newReq));
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
     }
 
     @Test
@@ -191,7 +176,6 @@ public class MinimumExecutionQuantityTest {
         assertThat(orderBook.findByOrderId(Side.SELL, 11)).isEqualTo(null);
     }
 
-
     @Test
     void buy_order_partially_matched_with_minimum_execution_quantity() {
         Order new_order = new Order(11, security, Side.BUY,
@@ -226,11 +210,10 @@ public class MinimumExecutionQuantityTest {
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
         assertThat(orderBook.getBuyQueue().peek()).isEqualTo(result.remainder());
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-
     }
 
     @Test
-    void sell_order_partially_matched_with_greater_than_with_minimum_execution_quantity() {
+    void sell_order_partially_matched_with_greater_than_minimum_execution_quantity() {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
@@ -239,7 +222,6 @@ public class MinimumExecutionQuantityTest {
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
         assertThat(orderBook.getSellQueue().peek()).isEqualTo(result.remainder());
         assertThat(orderBook.findByOrderId(Side.SELL, 11)).isNotEqualTo(null);
-
     }
 
     @Test
@@ -267,7 +249,7 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void check_total_trades_quantity_after_minimum_execution_quantity_matched() {
+    void set_minimum_quantity_executed_after_minimum_execution_quantity_matched_works() {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
@@ -276,21 +258,36 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void update_order_request_with_same_minimum() {
+    void update_order_request_with_same_minimum_works() {
         Order new_order = new Order(11, security, Side.SELL,
-                500, 15700, broker1, shareholder,
+                504, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
-        orderBook.enqueue(new_order);
-
+        MatchResult result = matcher.execute(new_order);
+        assertThat(result.remainder().getQuantity()).isEqualTo(200);
+        assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
-                15900, 1, 1, 0, 300);
-
+                15700, 1, 1, 0, 300);
         orderHandler.handleEnterOrder(updateReq);
-        assertThat(new_order.getQuantity()).isEqualTo(600);
+        assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
+        assertThat(orderBook.findByOrderId(Side.SELL, 11).getQuantity()).isEqualTo(600);
     }
 
     @Test
-    void update_order_request_with_different_minimum() {
+    void update_order_request_with_same_minimum_and_priority_change_works() {
+        Order new_order = new Order(11, security, Side.SELL,
+                504, 15700, broker1, shareholder,
+                LocalDateTime.now(), 300, false);
+        MatchResult result = matcher.execute(new_order);
+        assertThat(result.remainder().getQuantity()).isEqualTo(200);
+        assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
+        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
+                15900, 1, 1, 0, 300);
+        orderHandler.handleEnterOrder(updateReq);
+        assertThat(orderBook.findByOrderId(Side.SELL, 11).getQuantity()).isEqualTo(600);
+    }
+
+    @Test
+    void update_order_request_with_different_minimum_fails() {
         Order new_order = new Order(11, security, Side.SELL,
                 500, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
@@ -303,37 +300,6 @@ public class MinimumExecutionQuantityTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getErrors()).containsOnly(Message.CANNOT_MODIFY_MINIMUM_EXECUTION_QUANTITY);
     }
-
-    @Test
-    void no_minimum_execution_check_after_update_with_no_remainder() {
-        Order new_order = new Order(11, security, Side.BUY,
-                400, 15700, broker1, shareholder,
-                LocalDateTime.now(), 300, true);
-        orderBook.enqueue(new_order);
-
-        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 50,
-                15800, 1, 1, 0, 300);
-
-        orderHandler.handleEnterOrder(updateReq);
-        assertThat(new_order.getQuantity()).isEqualTo(0);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-    }
-
-    @Test
-    void no_minimum_execution_check_after_update_with_remainder() {
-        Order new_order = new Order(11, security, Side.BUY,
-                400, 15700, broker1, shareholder,
-                LocalDateTime.now(), 300, true);
-        orderBook.enqueue(new_order);
-
-        EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 450,
-                15800, 1, 1, 0, 300);
-
-        orderHandler.handleEnterOrder(updateReq);
-        assertThat(new_order.getQuantity()).isEqualTo(100);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-    }
-
 }
 
 

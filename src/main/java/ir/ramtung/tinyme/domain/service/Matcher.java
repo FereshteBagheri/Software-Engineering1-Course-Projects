@@ -94,7 +94,6 @@ public class Matcher {
                 }
                 order.getBroker().decreaseCreditBy(order.getValue());
             }
-
             order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
 
