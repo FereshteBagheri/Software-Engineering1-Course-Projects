@@ -48,9 +48,8 @@ public class Matcher {
 
     private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){
         newOrder.getBroker().increaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
-
-        trades.forEach(trade -> trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
-
+        trades.forEach(trade ->
+                trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
         ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
             newOrder.getSecurity().getOrderBook().restoreSellOrder(it.previous().getSell());
@@ -59,16 +58,13 @@ public class Matcher {
 
     private void rollbackSell(Order newOrder, LinkedList<Trade> trades){
         newOrder.getBroker().decreaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
-
-        trades.forEach(trade -> trade.getBuy().getBroker().increaseCreditBy(trade.getTradedValue()));
-
+        trades.forEach(trade ->
+                trade.getBuy().getBroker().increaseCreditBy(trade.getTradedValue()));
         ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
             newOrder.getSecurity().getOrderBook().restoreBuyOrder(it.previous().getBuy());
         }
     }
-
-
 
     private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {
         if (newOrder.getSide() == Side.BUY)
@@ -82,11 +78,14 @@ public class Matcher {
         MatchResult result = match(order);
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
+
         if (result.remainder().getQuantity() > 0) {
-            if (!result.remainder().isMinimumQuantityExecuted() && (result.remainder().getQuantity() > (previous_quantity - order.getMinimumExecutionQuantity()))){
+            if (!result.remainder().isMinimumQuantityExecuted() &&
+                    (result.remainder().getQuantity() > (previous_quantity - order.getMinimumExecutionQuantity()))){
                 rollbackTrades(order, result.trades());
                 return MatchResult.minimumNotMatched();
             }
+
             if (order.getSide() == Side.BUY) {
                 if (!order.getBroker().hasEnoughCredit(order.getValue())) {
                     rollbackTrades(order, result.trades());

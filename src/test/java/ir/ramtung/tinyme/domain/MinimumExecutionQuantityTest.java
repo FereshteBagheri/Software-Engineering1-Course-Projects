@@ -7,8 +7,6 @@ import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.OrderRejectedEvent;
-import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
-import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
@@ -133,7 +131,7 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void validate_negative_minimum_execution_quantity_falis() {
+    void validate_negative_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, -10);
         orderHandler.handleEnterOrder(newReq);
@@ -144,7 +142,7 @@ public class MinimumExecutionQuantityTest {
     }
 
     @Test
-    void validate_minimum_execution_quantity_greater_than_total_quantity_falis() {
+    void validate_minimum_execution_quantity_greater_than_total_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 500);
         orderHandler.handleEnterOrder(newReq);
