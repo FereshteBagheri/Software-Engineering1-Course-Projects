@@ -8,10 +8,9 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-@Builder
-@EqualsAndHashCode
-@ToString
 @Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 
 public class StopLimitOrder extends Order {
     int stopPrice;
@@ -29,6 +28,8 @@ public class StopLimitOrder extends Order {
         this.stopPrice = stopPrice;
     }
 
+
+    // we can ignore snapshot functions for this type of order
     @Override
     public Order snapshot() {
         return new StopLimitOrder(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT);
@@ -39,11 +40,25 @@ public class StopLimitOrder extends Order {
         return new StopLimitOrder(orderId, security, side, newQuantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT) ;
     }
 
-
     @Override
     public void updateFromRequest(EnterOrderRq updateOrderRq) {
         super.updateFromRequest(updateOrderRq);
         stopPrice = updateOrderRq.getStopPrice();
+    }
+
+    @Override
+    public boolean queuesBefore(Order order) {
+        StopLimitOrder stopOrder = (StopLimitOrder) order;
+        if (order.getSide() == Side.BUY) {
+            return stopPrice < stopOrder.getStopPrice();
+        } else {
+            return stopPrice > stopOrder.getStopPrice();
+        }
+    }
+
+
+    public Order active() {
+        return new Order(orderId, security, side, quantity, price, broker, shareholder);
     }
 
     public boolean isActivated(int lastTradePrice) {
