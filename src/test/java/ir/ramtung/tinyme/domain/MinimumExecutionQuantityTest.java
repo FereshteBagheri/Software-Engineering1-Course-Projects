@@ -93,8 +93,9 @@ public class MinimumExecutionQuantityTest {
     @Test
     void create_enter_order_request_without_minimum() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0);
+                15450, 1, 1, 0, 0);
         assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
+        // to do: this is pointless after removing previous constructor
     }
 
     @Test
@@ -107,8 +108,9 @@ public class MinimumExecutionQuantityTest {
     @Test
     void create_update_order_request_without_minimum() {
         EnterOrderRq newReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0);
+                15450, 1, 1, 0, 0);
         assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
+        // to do: this is pointless after removing previous constructor
     }
 
     @Test
