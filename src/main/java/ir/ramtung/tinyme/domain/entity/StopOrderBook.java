@@ -58,8 +58,7 @@ public class StopOrderBook {
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
 
         buyQueue.removeIf(order -> {
-            if (order instanceof StopLimitOrder) {
-                StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
+            if (order instanceof StopLimitOrder stopLimitOrder) {
                 if (stopLimitOrder.shouldActivate(lastTradePrice)) {
                     activatableOrders.add(stopLimitOrder);
                     return true;
@@ -73,8 +72,7 @@ public class StopOrderBook {
     public LinkedList<StopLimitOrder> getActivatableSellOrders(int lastTradePrice) {
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
         sellQueue.removeIf(order -> {
-            if (order instanceof StopLimitOrder) {
-                StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
+            if (order instanceof StopLimitOrder stopLimitOrder) {
                 if (stopLimitOrder.shouldActivate(lastTradePrice)) {
                     activatableOrders.add(stopLimitOrder);
                     return true;

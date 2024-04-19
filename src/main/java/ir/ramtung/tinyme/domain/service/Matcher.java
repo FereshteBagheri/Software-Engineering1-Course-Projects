@@ -17,12 +17,11 @@ public class Matcher {
         OrderBook orderBook = newOrder.getSecurity().getOrderBook();
         LinkedList<Trade> trades = new LinkedList<>();
 
-        if (newOrder instanceof StopLimitOrder){
-            StopLimitOrder order = (StopLimitOrder) newOrder;
-            if (order.shouldActivate(order.getSecurity().getLastTradePrice()))
-                newOrder = order.active();
+        if (newOrder instanceof StopLimitOrder stopLimitOrder) {
+            if (stopLimitOrder.shouldActivate(stopLimitOrder.getSecurity().getLastTradePrice()))
+                newOrder = stopLimitOrder.active();
             else
-                return MatchResult.notActivated(order);
+                return MatchResult.notActivated(stopLimitOrder);
         }
         
         while (orderBook.hasOrderOfType(newOrder.getSide().opposite()) && newOrder.getQuantity() > 0) {
@@ -107,8 +106,8 @@ public class Matcher {
                 order.getBroker().decreaseCreditBy(order.getValue());
             }
             
-            if (result.remainder() instanceof StopLimitOrder)
-                order.getSecurity().getStopOrderBook().enqueue((StopLimitOrder) result.remainder()); 
+            if (result.remainder() instanceof StopLimitOrder stopLimitOrder)
+                order.getSecurity().getStopOrderBook().enqueue(stopLimitOrder); 
             else   
                 order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
