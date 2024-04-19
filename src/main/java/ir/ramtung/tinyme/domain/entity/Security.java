@@ -8,6 +8,7 @@ import ir.ramtung.tinyme.messaging.Message;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Getter
@@ -27,7 +28,7 @@ public class Security {
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
         if (enterOrderRq.getSide() == Side.SELL &&
                 !shareholder.hasEnoughPositionsOn(this,
-                        orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
+                        orderBook.totalSellQuantityByShareholder(shareholder) + stopOrderBook.totalSellQuantityByShareholder(shareholder) +  enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order;
         if (enterOrderRq.getStopPrice() != 0)
@@ -99,5 +100,20 @@ public class Security {
             }
         }
         return matchResult;
+    }
+
+    public LinkedList<StopLimitOrder> getActivatableOrders(int lastTradePrice) {
+        LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
+        if (lastTradePrice > this.lastTradePrice) 
+
+            activeOrders = stopOrderBook.getActivatableBuyOrders(lastTradePrice);
+        else 
+            activeOrders = stopOrderBook.getActivatableSellOrders(lastTradePrice);
+
+        return activeOrders;
+    }
+
+    public void setLastTradePrice(int lastTradePrice) {
+        this.lastTradePrice = lastTradePrice;
     }
 }

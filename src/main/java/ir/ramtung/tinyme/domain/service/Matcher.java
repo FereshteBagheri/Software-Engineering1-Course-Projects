@@ -2,9 +2,14 @@ package ir.ramtung.tinyme.domain.service;
 
 import ir.ramtung.tinyme.domain.entity.*;
 import org.springframework.stereotype.Service;
-
+import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.messaging.TradeDTO;
+import ir.ramtung.tinyme.messaging.event.*;
+import ir.ramtung.tinyme.messaging.Message;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class Matcher {
@@ -120,4 +125,43 @@ public class Matcher {
         return result;
     }
 
+    public void executeActivatableStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
+        security.setLastTradePrice(lastTradePrice);
+        LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
+        
+        MatchResult matchResult;
+        while(true) {
+            
+            activatableOrders = security.getActivatableOrders(lastTradePrice);
+            security.setLastTradePrice(lastTradePrice);
+
+            if (activatableOrders.isEmpty())
+                return;
+
+            Order newOrder = activatableOrders.removeFirst().active();
+            eventPublisher.publish(new OrderActivatedEvent(requestId, newOrder.getOrderId()));
+
+            matchResult = execute(newOrder);
+            
+            // NOTE : these errors won't accured  
+
+            // if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
+            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
+            //     return;
+            // }
+            // if (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED) {
+            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
+            //     return;
+            // }
+            // if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
+            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
+            //     return;
+            // }
+
+            if (!matchResult.trades().isEmpty()) {
+                lastTradePrice = matchResult.trades().getLast().getPrice();
+                eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+            }
+        }
+    }
 }

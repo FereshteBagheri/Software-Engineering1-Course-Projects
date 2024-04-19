@@ -67,5 +67,6 @@ public class StopLimitOrder extends Order {
         else
             return lastTradePrice <= stopPrice;
     }
+    
 }
 

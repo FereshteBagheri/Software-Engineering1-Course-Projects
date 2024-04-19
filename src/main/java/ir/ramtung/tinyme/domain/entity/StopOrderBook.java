@@ -54,36 +54,42 @@ public class StopOrderBook {
         return false;
     }
 
-    public LinkedList<Order> getActivatableBuyOrders(int lastTradePrice) {
-        LinkedList<Order> activOrders = new LinkedList<>();
+    public LinkedList<StopLimitOrder> getActivatableBuyOrders(int lastTradePrice) {
+        LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
 
         buyQueue.removeIf(order -> {
             if (order instanceof StopLimitOrder) {
                 StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
                 if (stopLimitOrder.shouldActivate(lastTradePrice)) {
-                    activOrders.add(stopLimitOrder.active());
+                    activatableOrders.add(stopLimitOrder);
                     return true;
                 }
             }
             return false;
         });
-        return activOrders;
+        return activatableOrders;
     }
-    
-    public LinkedList<Order> getActivatableSellOrders(int lastTradePrice) {
-        LinkedList<Order> activOrders = new LinkedList<>();
+
+    public LinkedList<StopLimitOrder> getActivatableSellOrders(int lastTradePrice) {
+        LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
         sellQueue.removeIf(order -> {
             if (order instanceof StopLimitOrder) {
                 StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
                 if (stopLimitOrder.shouldActivate(lastTradePrice)) {
-                    activOrders.add(stopLimitOrder.active());
+                    activatableOrders.add(stopLimitOrder);
                     return true;
                 }
             }
             return false;
         });
 
-        return activOrders;
+        return activatableOrders;
     }
-    
+
+    public int totalSellQuantityByShareholder(Shareholder shareholder) {
+        return sellQueue.stream()
+                .filter(order -> order.getShareholder().equals(shareholder))
+                .mapToInt(Order::getTotalQuantity)
+                .sum();
+    }
 }
