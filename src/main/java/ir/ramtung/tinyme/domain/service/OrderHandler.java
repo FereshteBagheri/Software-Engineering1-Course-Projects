@@ -90,8 +90,11 @@ public class OrderHandler {
             errors.add(Message.ORDER_QUANTITY_NOT_POSITIVE);
         if (enterOrderRq.getPrice() <= 0)
             errors.add(Message.ORDER_PRICE_NOT_POSITIVE);
+        if (enterOrderRq.getStopPrice() < 0 || (enterOrderRq.getStopPrice() != 0 && (enterOrderRq.getMinimumExecutionQuantity() != 0 || enterOrderRq.getPeakSize() != 0)))
+            errors.add(Message.INVALID_STOP_PRICE);
         if (enterOrderRq.getMinimumExecutionQuantity() < 0 || (enterOrderRq.getMinimumExecutionQuantity() > enterOrderRq.getQuantity() && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER))
             errors.add(Message.INVALID_MINIMUM_EXECUTION_QUANTITY);
+
         Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
         if (security == null)
             errors.add(Message.UNKNOWN_SECURITY_ISIN);
