@@ -61,7 +61,7 @@ public class StopLimitOrder extends Order {
         return new Order(orderId, security, side, quantity, price, broker, shareholder);
     }
 
-    public boolean isActivated(int lastTradePrice) {
+    public boolean shouldActivate(int lastTradePrice) {
         if (side == Side.BUY)
             return lastTradePrice >= stopPrice;
         else
