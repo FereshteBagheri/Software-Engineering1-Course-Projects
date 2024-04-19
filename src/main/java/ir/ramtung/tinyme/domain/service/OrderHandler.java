@@ -73,7 +73,9 @@ public class OrderHandler {
             
             if (!matchResult.trades().isEmpty()) {
                 eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+                matcher.executeActivatableStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
             }
+            
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
         }
