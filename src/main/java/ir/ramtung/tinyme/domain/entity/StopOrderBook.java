@@ -54,23 +54,35 @@ public class StopOrderBook {
         return false;
     }
 
-    public LinkedList<Order> getActivateOrders(int lastTradePrice) {
+    public LinkedList<Order> getActivatableBuyOrders(int lastTradePrice) {
         LinkedList<Order> activOrders = new LinkedList<>();
+
+        buyQueue.removeIf(order -> {
+            if (order instanceof StopLimitOrder) {
+                StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
+                if (stopLimitOrder.shouldActivate(lastTradePrice)) {
+                    activOrders.add(stopLimitOrder.active());
+                    return true;
+                }
+            }
+            return false;
+        });
+        return activOrders;
+    }
     
-        buyQueue.stream()
-            .filter(order -> order instanceof StopLimitOrder)
-            .map(order -> (StopLimitOrder) order)
-            .takeWhile(stopLimitOrder -> stopLimitOrder.shouldActivate(lastTradePrice))
-            .map(StopLimitOrder::active)
-            .forEach(activOrders::add);
-    
-        sellQueue.stream()
-            .filter(order -> order instanceof StopLimitOrder)
-            .map(order -> (StopLimitOrder) order)
-            .takeWhile(stopLimitOrder -> stopLimitOrder.shouldActivate(lastTradePrice))
-            .map(StopLimitOrder::active)
-            .forEach(activOrders::add);
-    
+    public LinkedList<Order> getActivatableSellOrders(int lastTradePrice) {
+        LinkedList<Order> activOrders = new LinkedList<>();
+        sellQueue.removeIf(order -> {
+            if (order instanceof StopLimitOrder) {
+                StopLimitOrder stopLimitOrder = (StopLimitOrder) order;
+                if (stopLimitOrder.shouldActivate(lastTradePrice)) {
+                    activOrders.add(stopLimitOrder.active());
+                    return true;
+                }
+            }
+            return false;
+        });
+
         return activOrders;
     }
     
