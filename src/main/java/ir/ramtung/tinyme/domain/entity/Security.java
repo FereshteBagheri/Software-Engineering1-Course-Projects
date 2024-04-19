@@ -27,7 +27,11 @@ public class Security {
                         orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order;
-        if (enterOrderRq.getPeakSize() == 0)
+        if (enterOrderRq.getStopPrice() != 0)
+            order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
+                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
+                    enterOrderRq.getEntryTime(), enterOrderRq.getStopPrice());
+        else if (enterOrderRq.getPeakSize() == 0)
             order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
                     enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), false);
