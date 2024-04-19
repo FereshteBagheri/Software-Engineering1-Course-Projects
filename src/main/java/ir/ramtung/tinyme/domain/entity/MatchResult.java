@@ -12,6 +12,9 @@ public final class MatchResult {
     public static MatchResult executed(Order remainder, List<Trade> trades) {
         return new MatchResult(MatchingOutcome.EXECUTED, remainder, new LinkedList<>(trades));
     }
+    public static MatchResult notActivated(Order remainder) {
+        return new MatchResult(MatchingOutcome.NOT_ACTIVATED, remainder, new LinkedList<>());
+    }
     public static MatchResult notEnoughCredit() {
         return new MatchResult(MatchingOutcome.NOT_ENOUGH_CREDIT, null, new LinkedList<>());
     }
@@ -21,6 +24,8 @@ public final class MatchResult {
     public static MatchResult minimumNotMatched() {
         return new MatchResult(MatchingOutcome.MINIMUM_NOT_MATCHED, null, new LinkedList<>());
     }
+
+
     private MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades) {
         this.outcome = outcome;
         this.remainder = remainder;

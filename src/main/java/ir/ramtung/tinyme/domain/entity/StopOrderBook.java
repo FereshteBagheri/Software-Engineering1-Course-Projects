@@ -60,14 +60,14 @@ public class StopOrderBook {
         buyQueue.stream()
             .filter(order -> order instanceof StopLimitOrder)
             .map(order -> (StopLimitOrder) order)
-            .takeWhile(stopLimitOrder -> stopLimitOrder.isActivated(lastTradePrice))
+            .takeWhile(stopLimitOrder -> stopLimitOrder.shouldActivate(lastTradePrice))
             .map(StopLimitOrder::active)
             .forEach(activOrders::add);
     
         sellQueue.stream()
             .filter(order -> order instanceof StopLimitOrder)
             .map(order -> (StopLimitOrder) order)
-            .takeWhile(stopLimitOrder -> stopLimitOrder.isActivated(lastTradePrice))
+            .takeWhile(stopLimitOrder -> stopLimitOrder.shouldActivate(lastTradePrice))
             .map(StopLimitOrder::active)
             .forEach(activOrders::add);
     

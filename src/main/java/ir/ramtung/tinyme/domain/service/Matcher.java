@@ -12,6 +12,14 @@ public class Matcher {
         OrderBook orderBook = newOrder.getSecurity().getOrderBook();
         LinkedList<Trade> trades = new LinkedList<>();
 
+        if (newOrder instanceof StopLimitOrder){
+            StopLimitOrder order = (StopLimitOrder) newOrder;
+            if (order.shouldActivate(order.getSecurity().getLastTradePrice()))
+                newOrder = order.active();
+            else
+                return MatchResult.notActivated(order);
+        }
+        
         while (orderBook.hasOrderOfType(newOrder.getSide().opposite()) && newOrder.getQuantity() > 0) {
             Order matchingOrder = orderBook.matchWithFirst(newOrder);
             if (matchingOrder == null)
@@ -93,7 +101,11 @@ public class Matcher {
                 }
                 order.getBroker().decreaseCreditBy(order.getValue());
             }
-            order.getSecurity().getOrderBook().enqueue(result.remainder());
+            
+            if (result.remainder() instanceof StopLimitOrder)
+                order.getSecurity().getStopOrderBook().enqueue((StopLimitOrder) result.remainder()); 
+            else   
+                order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
 
         if (!result.remainder().isMinimumQuantityExecuted())

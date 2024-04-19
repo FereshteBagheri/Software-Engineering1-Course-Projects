@@ -59,10 +59,15 @@ public class OrderHandler {
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
                 return;
             }
+
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
             else
                 eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+
+            if (matchResult.outcome() == MatchingOutcome.NOT_ACTIVATED && enterOrderRq.getStopPrice() != 0)
+                return;
+            
             if (!matchResult.trades().isEmpty()) {
                 eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }
