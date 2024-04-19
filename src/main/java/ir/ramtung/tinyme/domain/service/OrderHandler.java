@@ -68,7 +68,7 @@ public class OrderHandler {
             if (matchResult.outcome() == MatchingOutcome.NOT_ACTIVATED && enterOrderRq.getStopPrice() != 0)
                 return;
             
-            if (!matchResult.trades().isEmpty() && enterOrderRq.getStopPrice() != 0)
+            if (matchResult.outcome() == MatchingOutcome.EXECUTED && enterOrderRq.getStopPrice() != 0)
                 eventPublisher.publish(new OrderActivatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
             
             if (!matchResult.trades().isEmpty()) {
