@@ -130,7 +130,7 @@ public class Matcher {
         MatchResult matchResult;
         while(true) {
             
-            activatableOrders = security.findTriggeredOrders(lastTradePrice);
+            activatableOrders.addAll(security.findTriggeredOrders(lastTradePrice));
             security.setLastTradePrice(lastTradePrice);
 
             if (activatableOrders.isEmpty())
