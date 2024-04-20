@@ -105,19 +105,18 @@ public class StopLimitOrderTest {
                 new Order(10, security, Side.SELL, 65, 15820, broker2, shareholder)
         );
         regularOrders.forEach(order -> orderBook.enqueue(order));
-
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
-                new StopLimitOrder(1, security, Side.BUY, 300, 15800, broker1, shareholder, 15100),
-                new StopLimitOrder(2, security, Side.BUY, 43, 15500, broker1, shareholder, 15100),
-                new StopLimitOrder(3, security, Side.BUY, 445, 15450, broker1, shareholder, 15800),
-                new StopLimitOrder(4, security, Side.BUY, 526, 15450, broker1, shareholder, 16000),
-                new StopLimitOrder(5, security, Side.BUY, 1000, 15400, broker2, shareholder, 16100),
-                new StopLimitOrder(6, security, Side.SELL, 350, 15800, broker2, shareholder, 16200),
-                new StopLimitOrder(7, security, Side.SELL, 285, 15810, broker1, shareholder, 16100),
-                new StopLimitOrder(8, security, Side.SELL, 800, 15810, broker2, shareholder, 15900),
-                new StopLimitOrder(9, security, Side.SELL, 340, 15820, broker2, shareholder, 15900),
-                new StopLimitOrder(10, security, Side.SELL, 65, 15820, broker2, shareholder, 15500)
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 15600),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 15550),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 15500),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 15450),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 15400)
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
@@ -145,13 +144,6 @@ public class StopLimitOrderTest {
             }
     }
 
-    @Test
-    void temp(){
-        printOrderBook(orderBook);
-        printStopLimitOrderBook(stopOrderBook);
-    }
-
-
 
     @Test
     void buy_stop_limit_order_rejected_due_to_not_enough_credit() {
@@ -159,12 +151,12 @@ public class StopLimitOrderTest {
         int price = 10000;
 
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.BUY, 20000,
+                21, LocalDateTime.now(), Side.BUY, 20000,
                 price, 2, 1, 0, 0, stopPrice));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
-        assertThat(outputEvent.getOrderId()).isEqualTo(11);
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
         assertThat(outputEvent.getErrors()).containsOnly(
                 Message.BUYER_HAS_NOT_ENOUGH_CREDIT
         );
@@ -176,12 +168,12 @@ public class StopLimitOrderTest {
         int stopPrice = 50;
         int price = 10000;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.SELL, 200000,
+                21, LocalDateTime.now(), Side.SELL, 200000,
                 price, 2, 1, 0, 0, stopPrice));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
-        assertThat(outputEvent.getOrderId()).isEqualTo(11);
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
         assertThat(outputEvent.getErrors()).containsOnly(
                 Message.SELLER_HAS_NOT_ENOUGH_POSITIONS
         );
@@ -194,10 +186,10 @@ public class StopLimitOrderTest {
         int price = 10000;
 
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.BUY, 2,
+                21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
     }
 
     @Test
@@ -206,10 +198,10 @@ public class StopLimitOrderTest {
         int stopPrice = 14000;
         int price = 10000;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.SELL, 2,
+                21, LocalDateTime.now(), Side.SELL, 2,
                 price, 2, 1, 0, 0, stopPrice));
-        assertThat(stopOrderBook.findByOrderId(Side.SELL, 11)).isNotEqualTo(null);
-        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 21)).isNotEqualTo(null);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
     }
 
     @Test
@@ -218,13 +210,13 @@ public class StopLimitOrderTest {
         int stopPrice = 14000;
         int price = 15500;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.BUY, 2,
+                21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(2);
-        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(1, 11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 21).getQuantity()).isEqualTo(2);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
 
     @Test
@@ -233,15 +225,13 @@ public class StopLimitOrderTest {
         int stopPrice = 14000;
         int price = 15800;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-                11, LocalDateTime.now(), Side.BUY, 400,
+                21, LocalDateTime.now(), Side.BUY, 400,
                 price, 1, 1, 0, 0, stopPrice));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-//        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        printOrderBook(orderBook);
-        printStopLimitOrderBook(stopOrderBook);
-//        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(50);
-        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(1, 11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 21).getQuantity()).isEqualTo(50);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
 
 }
