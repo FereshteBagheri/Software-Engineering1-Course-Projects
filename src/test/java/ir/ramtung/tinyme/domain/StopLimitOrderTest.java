@@ -227,7 +227,7 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 11));
     }
 
-    @Test // this has problems
+    @Test
     void sell_stop_order_is_activated_and_partially_matched() {
 
         int stopPrice = 14000;
