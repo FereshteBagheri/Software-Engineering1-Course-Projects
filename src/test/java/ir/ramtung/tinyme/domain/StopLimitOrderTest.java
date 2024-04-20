@@ -221,7 +221,6 @@ public class StopLimitOrderTest {
 
     @Test
     void sell_stop_order_is_activated_and_partially_matched() {
-
         int stopPrice = 14000;
         int price = 15800;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
@@ -233,5 +232,22 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
+
+    @Test
+    void sell_stop_order_is_activated_and_fully_matched() {
+        int stopPrice = 14000;
+        int price = 15810;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.BUY, 400,
+                price, 1, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 7).getQuantity()).isEqualTo(935);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
+    }
+
+    //recent 3 scenarios should be tested for Buy stopLimitOrders too
+
 
 }
