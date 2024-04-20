@@ -5,10 +5,9 @@ import org.springframework.stereotype.Service;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.TradeDTO;
 import ir.ramtung.tinyme.messaging.event.*;
-import ir.ramtung.tinyme.messaging.Message;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,7 +17,7 @@ public class Matcher {
         LinkedList<Trade> trades = new LinkedList<>();
 
         if (newOrder instanceof StopLimitOrder stopLimitOrder) {
-            if (stopLimitOrder.shouldActivate(stopLimitOrder.getSecurity().getLastTradePrice()))
+            if (stopLimitOrder.isTriggered(stopLimitOrder.getSecurity().getLastTradePrice()))
                 newOrder = stopLimitOrder.active();
             else
                 return MatchResult.notActivated(stopLimitOrder);

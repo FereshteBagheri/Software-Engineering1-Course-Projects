@@ -1,7 +1,6 @@
 package ir.ramtung.tinyme.domain.entity;
 
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -61,7 +60,7 @@ public class StopLimitOrder extends Order {
         return new Order(orderId, security, side, quantity, price, broker, shareholder);
     }
 
-    public boolean shouldActivate(int lastTradePrice) {
+    public boolean isTriggered(int lastTradePrice) {
         if (side == Side.BUY)
             return lastTradePrice >= stopPrice;
         else

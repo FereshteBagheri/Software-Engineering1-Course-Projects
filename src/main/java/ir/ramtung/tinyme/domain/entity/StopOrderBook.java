@@ -54,11 +54,11 @@ public class StopOrderBook {
         return false;
     }
 
-    public LinkedList<StopLimitOrder> getActivatableOrders(int lastTradePrice, Side side) {
+    public LinkedList<StopLimitOrder> findTriggeredOrders(int lastTradePrice, Side side) {
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
         LinkedList<StopLimitOrder> queue = getQueue(side);
         queue.removeIf(order -> {
-            if (order.shouldActivate(lastTradePrice)) {
+            if (order.isTriggered(lastTradePrice)) {
                 activatableOrders.add(order);
                 return true;
             }
