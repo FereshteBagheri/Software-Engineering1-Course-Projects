@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import ir.ramtung.tinyme.messaging.event.OrderRejectedEvent;
 import java.time.LocalDateTime;
+//import ir.ramtung.tinyme.messaging.request.UpdateOrderRq;
 
 
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
@@ -248,6 +249,80 @@ public class StopLimitOrderTest {
     }
 
     //recent 3 scenarios should be tested for Buy stopLimitOrders too
+
+    @Test
+    void update_stop_limit_order_rejected_due_to_not_enough_credit() {
+        int orderId = 15;
+        int newQuantity = 10000000;
+        int stopPrice = 16500;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
+                15400, 2, 1, 0, 0, stopPrice));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(15);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.BUYER_HAS_NOT_ENOUGH_CREDIT
+        );
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 15).getQuantity()).isEqualTo(1000);
+    }
+
+    @Test
+    void update_stop_limit_order_rejected_due_to_not_enough_position() {
+        int orderId = 16;
+        int newQuantity = 102_000;
+        int stopPrice = 15600;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.SELL, newQuantity,
+                15800, 2, 1, 0, 0, stopPrice));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(16);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.SELLER_HAS_NOT_ENOUGH_POSITIONS
+        );
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(350);
+    }
+
+    @Test
+    void stop_limit_order_with_peaksize_is_rejected(){
+        int stopPrice = 15600;
+        int price = 10000;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.BUY, 20000,
+                price, 1, 1, 400, 0, stopPrice));
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.INVALID_STOP_PRICE
+        );
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
+    }
+
+    @Test
+    void stop_limit_order_with_min_execution_quantity_is_rejected(){
+        int stopPrice = 15600;
+        int price = 10000;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.BUY, 20000,
+                price, 1, 1, 0, 100, stopPrice));
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.INVALID_STOP_PRICE
+        );
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
+    }
 
 
 }
