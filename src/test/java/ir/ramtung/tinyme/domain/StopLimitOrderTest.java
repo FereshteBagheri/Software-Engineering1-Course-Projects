@@ -78,7 +78,8 @@ public class StopLimitOrderTest {
         securityRepository.clear();
         brokerRepository.clear();
         shareholderRepository.clear();
-        security = Security.builder().isin("ABC").build();
+        security = Security.builder().isin("ABC").lastTradePrice(15000).build();
+
         securityRepository.addSecurity(security);
 
         shareholder = Shareholder.builder().shareholderId(1).build();
@@ -107,16 +108,16 @@ public class StopLimitOrderTest {
 
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
-                new StopLimitOrder(1, security, Side.BUY, 300, 15800, broker1, shareholder, 10),
-                new StopLimitOrder(2, security, Side.BUY, 43, 15500, broker1, shareholder, 20),
-                new StopLimitOrder(3, security, Side.BUY, 445, 15450, broker1, shareholder, 30),
-                new StopLimitOrder(4, security, Side.BUY, 526, 15450, broker1, shareholder, 40),
-                new StopLimitOrder(5, security, Side.BUY, 1000, 15400, broker2, shareholder, 50),
-                new StopLimitOrder(6, security, Side.SELL, 350, 15800, broker2, shareholder, 50),
-                new StopLimitOrder(7, security, Side.SELL, 285, 15810, broker1, shareholder, 40),
-                new StopLimitOrder(8, security, Side.SELL, 800, 15810, broker2, shareholder, 30),
-                new StopLimitOrder(9, security, Side.SELL, 340, 15820, broker2, shareholder, 20),
-                new StopLimitOrder(10, security, Side.SELL, 65, 15820, broker2, shareholder, 10)
+                new StopLimitOrder(1, security, Side.BUY, 300, 15800, broker1, shareholder, 15100),
+                new StopLimitOrder(2, security, Side.BUY, 43, 15500, broker1, shareholder, 15100),
+                new StopLimitOrder(3, security, Side.BUY, 445, 15450, broker1, shareholder, 15800),
+                new StopLimitOrder(4, security, Side.BUY, 526, 15450, broker1, shareholder, 16000),
+                new StopLimitOrder(5, security, Side.BUY, 1000, 15400, broker2, shareholder, 16100),
+                new StopLimitOrder(6, security, Side.SELL, 350, 15800, broker2, shareholder, 16200),
+                new StopLimitOrder(7, security, Side.SELL, 285, 15810, broker1, shareholder, 16100),
+                new StopLimitOrder(8, security, Side.SELL, 800, 15810, broker2, shareholder, 15900),
+                new StopLimitOrder(9, security, Side.SELL, 340, 15820, broker2, shareholder, 15900),
+                new StopLimitOrder(10, security, Side.SELL, 65, 15820, broker2, shareholder, 15500)
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
@@ -187,9 +188,60 @@ public class StopLimitOrderTest {
         assertThat(stopOrderBook.getSellQueue()).isEqualTo(stopOrders.subList(5, 10));
     }
 
+    @Test
+    void buy_stop_order_is_added_to_stopOrderBook_buy_queue() {
+        int stopPrice = 15050;
+        int price = 10000;
 
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                11, LocalDateTime.now(), Side.BUY, 2,
+                price, 2, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+    }
 
+    @Test
+    void sell_stop_order_is_added_to_stopOrderBook_sell_queue() {
 
+        int stopPrice = 14000;
+        int price = 10000;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                11, LocalDateTime.now(), Side.SELL, 2,
+                price, 2, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 11)).isNotEqualTo(null);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+    }
 
+    @Test
+    void sell_stop_order_is_activated_and_not_matched() {
+
+        int stopPrice = 14000;
+        int price = 15500;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                11, LocalDateTime.now(), Side.BUY, 2,
+                price, 2, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(2);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 11));
+    }
+
+    @Test
+    void sell_stop_order_is_activated_and_partially_matched() {
+
+        int stopPrice = 14000;
+        int price = 15800;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                11, LocalDateTime.now(), Side.BUY, 400,
+                price, 1, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+//        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        printOrderBook(orderBook);
+        printStopLimitOrderBook(stopOrderBook);
+//        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(50);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 11));
+    }
 
 }
