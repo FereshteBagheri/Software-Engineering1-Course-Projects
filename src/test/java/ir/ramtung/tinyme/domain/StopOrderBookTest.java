@@ -104,7 +104,7 @@ class StopOrderBookTest {
     void buy_stop_order_is_activatable() {
         List<StopLimitOrder> buyQueue = security.getStopOrderBook().getBuyQueue();
         int lastTradePrice = 30;
-        List<StopLimitOrder> activatableBuyOrders = security.getStopOrderBook().getActivatableOrders(lastTradePrice, Side.BUY);
+        List<StopLimitOrder> activatableBuyOrders = security.getStopOrderBook().findTriggeredOrders(lastTradePrice, Side.BUY);
         assertThat(buyQueue).hasSize(2);
         assertThat(activatableBuyOrders).hasSize(3);
         assertThat(activatableBuyOrders.get(0).getOrderId()).isEqualTo(1);
@@ -116,7 +116,7 @@ class StopOrderBookTest {
     void sell_stop_order_is_activatable() {
         List<StopLimitOrder> sellQueue = security.getStopOrderBook().getSellQueue();
         int lastTradePrice = 40;
-        List<StopLimitOrder> activatableSellOrders = security.getStopOrderBook().getActivatableOrders(lastTradePrice, Side.SELL);
+        List<StopLimitOrder> activatableSellOrders = security.getStopOrderBook().findTriggeredOrders(lastTradePrice, Side.SELL);
         assertThat(sellQueue).hasSize(3);
         assertThat(activatableSellOrders).hasSize(2);
         assertThat(activatableSellOrders.get(0).getOrderId()).isEqualTo(10);
