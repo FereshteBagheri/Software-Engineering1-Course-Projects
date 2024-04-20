@@ -54,33 +54,16 @@ public class StopOrderBook {
         return false;
     }
 
-    public LinkedList<StopLimitOrder> getActivatableBuyOrders(int lastTradePrice) {
+    public LinkedList<StopLimitOrder> getActivatableOrders(int lastTradePrice, Side side) {
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
-
-        buyQueue.removeIf(order -> {
-            if (order instanceof StopLimitOrder stopLimitOrder) {
-                if (stopLimitOrder.shouldActivate(lastTradePrice)) {
-                    activatableOrders.add(stopLimitOrder);
-                    return true;
-                }
+        LinkedList<StopLimitOrder> queue = getQueue(side);
+        queue.removeIf(order -> {
+            if (order.shouldActivate(lastTradePrice)) {
+                activatableOrders.add(order);
+                return true;
             }
             return false;
         });
-        return activatableOrders;
-    }
-
-    public LinkedList<StopLimitOrder> getActivatableSellOrders(int lastTradePrice) {
-        LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
-        sellQueue.removeIf(order -> {
-            if (order instanceof StopLimitOrder stopLimitOrder) {
-                if (stopLimitOrder.shouldActivate(lastTradePrice)) {
-                    activatableOrders.add(stopLimitOrder);
-                    return true;
-                }
-            }
-            return false;
-        });
-
         return activatableOrders;
     }
 
@@ -91,3 +74,5 @@ public class StopOrderBook {
                 .sum();
     }
 }
+
+

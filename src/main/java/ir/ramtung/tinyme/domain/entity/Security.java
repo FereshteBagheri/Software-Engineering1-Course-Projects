@@ -125,9 +125,9 @@ public class Security {
     public LinkedList<StopLimitOrder> getActivatableOrders(int lastTradePrice) {
         LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
         if (lastTradePrice > this.lastTradePrice) 
-            activeOrders = stopOrderBook.getActivatableBuyOrders(lastTradePrice);
+            activeOrders = stopOrderBook.getActivatableOrders(lastTradePrice, Side.BUY);
         else 
-            activeOrders = stopOrderBook.getActivatableSellOrders(lastTradePrice);
+            activeOrders = stopOrderBook.getActivatableOrders(lastTradePrice, Side.SELL);
 
         return activeOrders;
     }
