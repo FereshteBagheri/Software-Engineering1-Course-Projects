@@ -122,7 +122,7 @@ public class Security {
         return matchResult;
     }
 
-    public LinkedList<StopLimitOrder> getActivatableOrders(int lastTradePrice) {
+    public LinkedList<StopLimitOrder> findTriggeredOrders(int lastTradePrice) {
         LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
         if (lastTradePrice > this.lastTradePrice) 
             activeOrders = stopOrderBook.findTriggeredOrders(lastTradePrice, Side.BUY);
