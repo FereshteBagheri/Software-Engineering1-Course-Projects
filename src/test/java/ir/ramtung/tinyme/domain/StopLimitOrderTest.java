@@ -206,7 +206,7 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void sell_stop_order_is_activated_and_not_matched() {
+    void buy_stop_order_is_activated_and_not_matched() {
 
         int stopPrice = 14000;
         int price = 15500;
@@ -221,7 +221,7 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void sell_stop_order_is_activated_and_partially_matched() {
+    void buy_stop_order_is_activated_and_partially_matched() {
         int stopPrice = 14000;
         int price = 15800;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
@@ -235,7 +235,7 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void sell_stop_order_is_activated_and_fully_matched() {
+    void buy_stop_order_is_activated_and_fully_matched() {
         int stopPrice = 14000;
         int price = 15810;
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
@@ -248,7 +248,49 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
 
-    //recent 3 scenarios should be tested for Buy stopLimitOrders too
+
+    @Test
+    void sell_stop_order_is_activated_and_not_matched() {
+        int stopPrice = 15200;
+        int price = 15750;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.SELL, 20,
+                price, 1, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 21)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 21).getQuantity()).isEqualTo(20);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
+    }
+
+    @Test
+    void sell_stop_order_is_activated_and_partially_matched() {
+        int stopPrice = 15200;
+        int price = 15700;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.SELL, 400,
+                price, 1, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 21)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 21).getQuantity()).isEqualTo(96);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
+    }
+
+    @Test
+    void sell_stop_order_is_activated_and_fully_matched() {
+        int stopPrice = 15200;
+        int price = 15500;
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.SELL, 324,
+                price, 1, 1, 0, 0, stopPrice));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 21)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 2).getQuantity()).isEqualTo(23);
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
+    }
+
 
     @Test
     void update_stop_limit_order_rejected_due_to_not_enough_credit() {
