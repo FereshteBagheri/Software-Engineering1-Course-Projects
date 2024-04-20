@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -75,7 +76,9 @@ class StopOrderBookTest {
     void removes_the_last_stop_order_by_id() {
         StopOrderBook stopOrderBook = security.getStopOrderBook();
         stopOrderBook.removeByOrderId(Side.SELL, 10);
-        assertThat(stopOrderBook.getSellQueue()).isEqualTo(orders.subList(5, 9));
+        List<StopLimitOrder> sellQueueFromOrderList = orders.subList(5, 9);
+        Collections.reverse(sellQueueFromOrderList);
+        assertThat(stopOrderBook.getSellQueue()).isEqualTo(sellQueueFromOrderList);
     }
 
     @Test
