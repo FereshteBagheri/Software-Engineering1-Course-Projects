@@ -459,12 +459,8 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void update_stop_limit_order_active_some_other_orders(){
-        // int orderId = 11;
-        // int orderIdNeedToActive = 12;
-        // int newStopPriceId11 = 15000;
-        // int newStopPriceId12 = 15800;
-        long valid_credit_broker1 = broker1.getCredit();
+    void update_stop_limit_order_active_some_other_orders(){       
+        long valid_credit_broker1 = broker1.getCredit() - (43 * 15500);
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
         15500, 1, 1, 0, 0, 15800));
@@ -475,13 +471,13 @@ public class StopLimitOrderTest {
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 11, LocalDateTime.now(), Side.BUY, 300,
         15800, 1, 1, 0, 0, 15000));
 
-         assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
          assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
          assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         
          verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
          verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        // verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+         verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
     }
 
 }
