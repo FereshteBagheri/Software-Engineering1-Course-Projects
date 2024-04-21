@@ -390,13 +390,18 @@ public class StopLimitOrderTest {
     @Test
     void update_stop_limit_order_does_not_lose_priority_by_decrease_quantity() {
         int orderId = 11;
+        StopLimitOrder stopOrderTest = (StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, orderId);
         int newQuantity = 250;
-        long previous_credit = broker1.getCredit();
+        LinkedList<StopLimitOrder> valid_buyQueue = stopOrderBook.getBuyQueue();
+        LinkedList<Order> valid_sellQueue = orderBook.getSellQueue();
+        long valid_credit = broker1.getCredit() + (stopOrderTest.getQuantity() - newQuantity) * stopOrderTest.getPrice();
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
                 15800, 1, 1, 0, 0, 16300));
 
-        assertThat(broker1.getCredit()).isEqualTo(previous_credit);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(valid_buyQueue);
+        assertThat(orderBook.getSellQueue()).isEqualTo(valid_sellQueue);
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
     }
 
@@ -415,7 +420,7 @@ public class StopLimitOrderTest {
         for (int i = 13; i <= 15; i++){
                 valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, i));
         }
-        // System.out.println(security.getLastTradePrice());
+        
         assertThat(broker1.getCredit()).isEqualTo(previous_credit);
         assertThat(stopOrderBook.getBuyQueue()).isEqualTo(valid_buyQueue);
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
@@ -428,15 +433,17 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 300,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 43,
         15500, 1, 1, 0, 0, newStopPrice));
         
         valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 11));
         for (int i = 13; i <= 15; i++){
                 valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, i));
         }
+
         assertThat(broker1.getCredit()).isEqualTo(previous_credit);
         assertThat(stopOrderBook.getBuyQueue()).isEqualTo(valid_buyQueue);
+        assertThat(orderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
         verify(eventPublisher).publish(new OrderActivatedEvent(1, orderId));
     }
