@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest
@@ -447,6 +448,32 @@ public class StopLimitOrderTest {
         assertThat(orderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
         verify(eventPublisher).publish(new OrderActivatedEvent(1, orderId));
+    }
+
+    @Test
+    void update_stop_limit_order_active_some_other_orders(){
+        // int orderId = 11;
+        // int orderIdNeedToActive = 12;
+        // int newStopPriceId11 = 15000;
+        // int newStopPriceId12 = 15800;
+        long valid_credit_broker1 = broker1.getCredit();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+        15500, 1, 1, 0, 0, 15800));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
+        
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 11, LocalDateTime.now(), Side.BUY, 300,
+        15800, 1, 1, 0, 0, 15000));
+
+         assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
+         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
+         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        
+         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        // verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
     }
 
 }
