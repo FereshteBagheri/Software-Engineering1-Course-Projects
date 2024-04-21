@@ -221,11 +221,13 @@ public class StopLimitOrderTest {
     void buy_stop_order_is_activated_and_fully_matched() {
         int stopPrice = 14000;
         int price = 15810;
-        long previous_credit = broker1.getCredit();
+        long previous_credit1 = broker1.getCredit();
+        long previous_credit2 = broker2.getCredit();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 400,
                 price, 1, 1, 0, 0, stopPrice));
-        assertThat(broker1.getCredit()).isEqualTo(previous_credit - 350*15800); //not passed
+        assertThat(broker1.getCredit()).isEqualTo(previous_credit1 - 350*15800);
+        assertThat(broker2.getCredit()).isEqualTo(previous_credit2 + 350*15800);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
         assertThat(orderBook.findByOrderId(Side.BUY, 21)).isEqualTo(null);
         assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);
