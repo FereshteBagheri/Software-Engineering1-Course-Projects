@@ -212,7 +212,6 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
 
-
     @Test
     void sell_stop_order_is_activated_and_not_matched() {
         int stopPrice = 15200;
@@ -258,7 +257,6 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
     }
-
 
     @Test
     void update_stop_limit_order_rejected_due_to_not_enough_credit() {
