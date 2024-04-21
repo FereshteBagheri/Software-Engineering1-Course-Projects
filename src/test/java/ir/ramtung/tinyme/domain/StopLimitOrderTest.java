@@ -102,30 +102,6 @@ public class StopLimitOrderTest {
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
-    private void printOrderBook(OrderBook orderBook) {
-            System.out.println("Order Book:");
-            System.out.println("Buy Orders:");
-            for (Order order : orderBook.getBuyQueue()) {
-                System.out.println(order.toString());
-            }
-            System.out.println("Sell Orders:");
-            for (Order order : orderBook.getSellQueue()) {
-                System.out.println(order.toString());
-            }
-    }
-
-    private void printStopLimitOrderBook(StopOrderBook stopOrderBook) {
-            System.out.println("Stop Limit Order Book:");
-            System.out.println("Buy Orders:");
-            for (StopLimitOrder order : stopOrderBook.getBuyQueue()) {
-                System.out.println(order.toString());
-            }
-            System.out.println("Sell Orders:");
-            for (StopLimitOrder order : stopOrderBook.getSellQueue()) {
-                System.out.println(order.toString());
-            }
-    }
-
 
     @Test
     void buy_stop_limit_order_rejected_due_to_not_enough_credit() {
@@ -303,24 +279,24 @@ public class StopLimitOrderTest {
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 15).getQuantity()).isEqualTo(1000);
     }
 
-//     @Test
-//     void update_stop_limit_order_rejected_due_to_not_enough_position() {
-//         int orderId = 16;
-//         int newQuantity = 102_000;
-//         int stopPrice = 15600;
+    @Test
+    void update_stop_limit_order_rejected_due_to_not_enough_position() {
+        int orderId = 16;
+        int newQuantity = 102_000;
+        int stopPrice = 15600;
 
-//         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.SELL, newQuantity,
-//                 15800, 2, 1, 0, 0, stopPrice));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.SELL, newQuantity,
+                15800, 2, 1, 0, 0, stopPrice));
 
-//         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
-//         verify(eventPublisher).publish(orderRejectedCaptor.capture());
-//         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
-//         assertThat(outputEvent.getOrderId()).isEqualTo(16);
-//         assertThat(outputEvent.getErrors()).containsOnly(
-//                 Message.SELLER_HAS_NOT_ENOUGH_POSITIONS
-//         );
-//         assertThat(stopOrderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(350);
-//     }
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(16);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.SELLER_HAS_NOT_ENOUGH_POSITIONS
+        );
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(350);
+    }
 
     @Test
     void stop_limit_order_with_peaksize_is_rejected(){
