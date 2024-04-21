@@ -92,17 +92,17 @@ public class Matcher {
 
         if (result.remainder().getQuantity() > 0) {
             if (!result.remainder().isMinimumQuantityExecuted() &&
-                    (result.remainder().getQuantity() > (previous_quantity - order.getMinimumExecutionQuantity()))){
-                rollbackTrades(order, result.trades());
+                    (result.remainder().getQuantity() > (previous_quantity - result.remainder().getMinimumExecutionQuantity()))){
+                rollbackTrades(result.remainder(), result.trades());
                 return MatchResult.minimumNotMatched();
             }
 
             if (order.getSide() == Side.BUY) {
-                if (!order.getBroker().hasEnoughCredit(order.getValue())) {
-                    rollbackTrades(order, result.trades());
+                if (!order.getBroker().hasEnoughCredit(result.remainder().getValue())) {
+                    rollbackTrades(result.remainder(), result.trades());
                     return MatchResult.notEnoughCredit();
                 }
-                order.getBroker().decreaseCreditBy(order.getValue());
+                order.getBroker().decreaseCreditBy(result.remainder().getValue());
             }
             
             if (result.remainder() instanceof StopLimitOrder stopLimitOrder)
