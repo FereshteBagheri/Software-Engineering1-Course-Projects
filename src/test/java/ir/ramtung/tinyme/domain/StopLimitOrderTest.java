@@ -451,7 +451,6 @@ public class StopLimitOrderTest {
     @Test
     void update_stop_limit_order_lose_priority_by_decrease_price_activate_match() {
         int orderId = 12;
-        System.out.println(broker1.getCredit());
         StopLimitOrder stopOrderTest = (StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, orderId);
         Order OrderTest = (Order)orderBook.findByOrderId(Side.SELL, 6);
         int newStopPrice = 14370;
@@ -460,21 +459,9 @@ public class StopLimitOrderTest {
         long valid_credit_broker1 = broker1.getCredit() + stopOrderTest.getQuantity() * stopOrderTest.getPrice() - (OrderTest.getQuantity() * OrderTest.getPrice()) - ((newQuantity - OrderTest.getQuantity()) * newPrice);
         long valid_credit_broker2 = broker2.getCredit() + OrderTest.getQuantity() * OrderTest.getPrice();
 
-        System.out.println(broker1.getCredit());
-        System.out.println();
-        System.out.println(stopOrderTest.getQuantity() * stopOrderTest.getPrice());
-        System.out.println();
-        System.out.println(OrderTest.getQuantity() * OrderTest.getPrice());
-        System.out.println();
-        System.out.println((newQuantity - OrderTest.getQuantity()) * newPrice);
-        System.out.println();
-        System.out.println(valid_credit_broker1);
-        System.out.println();
-
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
         newPrice, 1, 1, 0, 0, newStopPrice));
-        System.out.println(broker1.getCredit());
-//        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
         assertThat(broker2.getCredit()).isEqualTo(valid_credit_broker2);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isEqualTo(null);
         assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);

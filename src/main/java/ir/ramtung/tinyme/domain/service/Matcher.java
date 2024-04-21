@@ -143,18 +143,9 @@ public class Matcher {
             
             // NOTE : these errors won't accured  
 
-            // if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
-            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
-            //     return;
-            // }
-            // if (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED) {
-            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
-            //     return;
-            // }
-            // if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
-            //     eventPublisher.publish(new OrderRejectedEvent(requestId, newOrder.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
-            //     return;
-            // }
+            // (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
+            // (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED)
+            // (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) 
 
             if (!matchResult.trades().isEmpty()) {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
