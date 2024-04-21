@@ -92,7 +92,6 @@ public class Matcher {
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
 
-        System.out.println("here2" + result.remainder().getQuantity());
         if (result.remainder().getQuantity() > 0) {
             if (!result.remainder().isMinimumQuantityExecuted() &&
                     (result.remainder().getQuantity() > (previous_quantity - result.remainder().getMinimumExecutionQuantity()))){
@@ -127,7 +126,6 @@ public class Matcher {
     }
 
     public void executeActivatableStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
-        security.setLastTradePrice(lastTradePrice);
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
         
         MatchResult matchResult;
@@ -154,7 +152,6 @@ public class Matcher {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
                 eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }
-            System.out.println(newOrder.getSecurity().getLastTradePrice());
         }
     }
 }

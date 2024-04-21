@@ -122,17 +122,18 @@ public class Security {
         return matchResult;
     }
 
-    public LinkedList<StopLimitOrder> findTriggeredOrders(int lastTradePrice) {
+    public LinkedList<StopLimitOrder> findTriggeredOrders(int last_Trade_Price) {
         LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
-        if (lastTradePrice > this.lastTradePrice) 
-            activeOrders = stopOrderBook.findTriggeredOrders(lastTradePrice, Side.BUY);
+        if (last_Trade_Price > this.lastTradePrice) {
+            activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.BUY);
+        }
         else 
-            activeOrders = stopOrderBook.findTriggeredOrders(lastTradePrice, Side.SELL);
+            activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.SELL);
 
         return activeOrders;
     }
 
-    public void setLastTradePrice(int lastTradePrice) {
-        this.lastTradePrice = lastTradePrice;
+    public void setLastTradePrice(int last_Trade_Price) {
+        this.lastTradePrice = last_Trade_Price;
     }
 }
