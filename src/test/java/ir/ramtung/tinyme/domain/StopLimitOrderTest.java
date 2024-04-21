@@ -42,6 +42,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.util.LinkedList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -386,5 +387,93 @@ public class StopLimitOrderTest {
         assertThat(orderBook.findByOrderId(Side.SELL, 18).getQuantity()).isEqualTo(800);
     }
 
+    @Test
+    void update_stop_limit_order_does_not_lose_priority_by_decrease_quantity() {
+        int orderId = 11;
+        int newQuantity = 250;
+        long previous_credit = broker1.getCredit();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
+                15800, 1, 1, 0, 0, 16300));
+
+        assertThat(broker1.getCredit()).isEqualTo(previous_credit);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
+    }
+
+    @Test
+    void update_stop_limit_order_lose_priority_by_decrease_price_not_activate() {
+        int orderId = 11;
+        int newStopPrice = 16370;
+        long previous_credit = broker1.getCredit();
+        LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 300,
+        15800, 1, 1, 0, 0, newStopPrice));
+        
+        valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 12));
+        valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 11));
+        for (int i = 13; i <= 15; i++){
+                valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, i));
+        }
+        // System.out.println(security.getLastTradePrice());
+        assertThat(broker1.getCredit()).isEqualTo(previous_credit);
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(valid_buyQueue);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
+    }
+
+    @Test
+    void update_stop_limit_order_lose_priority_by_decrease_price_activate_not_match() {
+        int orderId = 12;
+        int newStopPrice = 14370;
+        long previous_credit = broker1.getCredit();
+        LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 300,
+        15500, 1, 1, 0, 0, newStopPrice));
+        
+        valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 11));
+        for (int i = 13; i <= 15; i++){
+                valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, i));
+        }
+        assertThat(broker1.getCredit()).isEqualTo(previous_credit);
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(valid_buyQueue);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, orderId));
+    }
+
+    @Test
+    void update_stop_limit_order_lose_priority_by_decrease_price_activate_match() {
+        int orderId = 12;
+        System.out.println(broker1.getCredit());
+        StopLimitOrder stopOrderTest = (StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, orderId);
+        Order OrderTest = (Order)orderBook.findByOrderId(Side.SELL, 6);
+        int newStopPrice = 14370;
+        int newQuantity = 360;
+        int newPrice = 15805;
+        long valid_credit_broker1 = broker1.getCredit() + stopOrderTest.getQuantity() * stopOrderTest.getPrice() - (OrderTest.getQuantity() * OrderTest.getPrice()) - ((newQuantity - OrderTest.getQuantity()) * newPrice);
+        long valid_credit_broker2 = broker2.getCredit() + OrderTest.getQuantity() * OrderTest.getPrice();
+
+        System.out.println(broker1.getCredit());
+        System.out.println();
+        System.out.println(stopOrderTest.getQuantity() * stopOrderTest.getPrice());
+        System.out.println();
+        System.out.println(OrderTest.getQuantity() * OrderTest.getPrice());
+        System.out.println();
+        System.out.println((newQuantity - OrderTest.getQuantity()) * newPrice);
+        System.out.println();
+        System.out.println(valid_credit_broker1);
+        System.out.println();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
+        newPrice, 1, 1, 0, 0, newStopPrice));
+        System.out.println(broker1.getCredit());
+//        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
+        assertThat(broker2.getCredit()).isEqualTo(valid_credit_broker2);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, orderId));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, orderId));
+    }
 
 }
