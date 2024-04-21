@@ -356,21 +356,18 @@ public class StopLimitOrderTest {
         assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
     }
 
-//    @Test
-//    void last_trade_activates_some_stop_orders(){
-//        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
-//                21, LocalDateTime.now(), Side.SELL, 327,
-//                14550, 1, 1, 0, 0, 0));
+   @Test
+   void last_trade_activates_some_stop_orders(){
+        Order newOrder = new Order(21, security, Side.BUY, 50, 14550, broker1, shareholder);
+        orderBook.enqueue(newOrder);
 
-//        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
-//        assertThat(orderBook.findByOrderId(Side.SELL, 21)).isEqualTo(null);
-//        assertThat(orderBook.findByOrderId(Side.BUY, 2).getQuantity()).isEqualTo(20);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC", 22, LocalDateTime.now(), 
+                Side.SELL, 2368, 14550, 1, 1, 0, 0, 0));
 
-//        verify(eventPublisher).publish(new OrderActivatedEvent(1, 16));
-//        verify(eventPublisher).publish(new OrderActivatedEvent(1, 17));
-//        assertThat(orderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(350);
-//        assertThat(orderBook.findByOrderId(Side.SELL, 17).getQuantity()).isEqualTo(285);
-//    }
+        assertThat(orderBook.getBuyQueue().isEmpty()).isTrue();
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 16));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 17));
+   }
 
     @Test
     void update_stop_limit_order_does_not_lose_priority_by_decrease_quantity() {
