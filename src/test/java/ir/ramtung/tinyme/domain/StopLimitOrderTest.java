@@ -142,11 +142,12 @@ public class StopLimitOrderTest {
     void buy_stop_order_is_added_to_stopOrderBook_buy_queue() {
         int stopPrice = 15050;
         int price = 10000;
-
+        long previous_credit = broker2.getCredit();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        assertThat(broker2.getCredit()).isEqualTo(previous_credit - 10000*2);
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
     }
 
@@ -155,10 +156,12 @@ public class StopLimitOrderTest {
 
         int stopPrice = 14000;
         int price = 10000;
+        long previous_credit = broker2.getCredit();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 2,
                 price, 2, 1, 0, 0, stopPrice));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 21)).isNotEqualTo(null);
+        assertThat(broker2.getCredit()).isEqualTo(previous_credit);
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
     }
 
@@ -167,6 +170,7 @@ public class StopLimitOrderTest {
 
         int stopPrice = 14000;
         int price = 15500;
+        long previous_credit = broker2.getCredit();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
@@ -175,6 +179,7 @@ public class StopLimitOrderTest {
         assertThat(orderBook.findByOrderId(Side.BUY, 21).getQuantity()).isEqualTo(2);
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 21));
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 21));
+        assertThat(broker2.getCredit()).isEqualTo(previous_credit - 2*15500);
     }
 
     @Test
