@@ -2,6 +2,7 @@ package ir.ramtung.tinyme.domain.entity;
 
 import lombok.Getter;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -57,15 +58,19 @@ public class StopOrderBook {
     public LinkedList<StopLimitOrder> findTriggeredOrders(int lastTradePrice, Side side) {
         LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
         LinkedList<StopLimitOrder> queue = getQueue(side);
-        queue.removeIf(order -> {
+        Iterator<StopLimitOrder> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            StopLimitOrder order = iterator.next();
             if (order.isTriggered(lastTradePrice)) {
                 activatableOrders.add(order);
-                return true;
+                iterator.remove();
+            } else {
+                break;
             }
-            return false;
-        });
+        }
         return activatableOrders;
     }
+    
 
     public int totalSellQuantityByShareholder(Shareholder shareholder) {
         return sellQueue.stream()
