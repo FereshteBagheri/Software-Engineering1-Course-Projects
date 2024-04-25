@@ -106,11 +106,7 @@ public class Matcher {
                 }
                 order.getBroker().decreaseCreditBy(result.remainder().getValue());
             }
-            
-            if (result.remainder() instanceof StopLimitOrder stopLimitOrder)
-                order.getSecurity().getStopOrderBook().enqueue(stopLimitOrder); 
-            else   
-                order.getSecurity().getOrderBook().enqueue(result.remainder());
+            order.getSecurity().enqueueOrder(result.remainder());
         }
 
         if (!result.remainder().isMinimumQuantityExecuted())
@@ -142,12 +138,6 @@ public class Matcher {
 
             matchResult = execute(newOrder);
             
-            // NOTE : these errors won't accured  
-
-            // (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
-            // (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED)
-            // (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) 
-
             if (!matchResult.trades().isEmpty()) {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
                 eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));

@@ -57,10 +57,7 @@ public class Security {
         if (order.getSide() == Side.BUY)
             order.getBroker().increaseCreditBy(order.getValue());
             
-        if (order instanceof StopLimitOrder)
-            stopOrderBook.removeByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
-        else
-            orderBook.removeByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
+        removeOrderByOrderId(order, deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
     }
 
     public MatchResult updateOrder(EnterOrderRq updateOrderRq, Matcher matcher) throws InvalidRequestException {
@@ -103,18 +100,11 @@ public class Security {
         else
             order.markAsNew();
 
-        if (order instanceof StopLimitOrder)
-            stopOrderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
-        else
-            orderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
+        removeOrderByOrderId(order, updateOrderRq.getSide(), updateOrderRq.getOrderId());
 
         MatchResult matchResult = matcher.execute(order);
         if (matchResult.outcome() != MatchingOutcome.EXECUTED && matchResult.outcome() != MatchingOutcome.NOT_ACTIVATED) {
-            if (originalOrder instanceof StopLimitOrder stopLimitOrder)
-                stopOrderBook.enqueue(stopLimitOrder);
-            else
-                orderBook.enqueue(originalOrder);
-
+            enqueueOrder(originalOrder);
             if (updateOrderRq.getSide() == Side.BUY) {
                 originalOrder.getBroker().decreaseCreditBy(originalOrder.getValue());
             }
@@ -124,13 +114,26 @@ public class Security {
 
     public LinkedList<StopLimitOrder> findTriggeredOrders(int last_Trade_Price) {
         LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
-        if (last_Trade_Price > this.lastTradePrice) {
+        if (last_Trade_Price > this.lastTradePrice)
             activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.BUY);
-        }
         else 
             activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.SELL);
 
         return activeOrders;
+    }
+
+    public void enqueueOrder(Order order) {
+        if (order instanceof StopLimitOrder stopLimitOrder)
+            stopOrderBook.enqueue(stopLimitOrder);
+        else
+            orderBook.enqueue(order);
+    }
+
+    public void removeOrderByOrderId(Order order, Side side, long orderId) {
+        if (order instanceof StopLimitOrder)
+            stopOrderBook.removeByOrderId(side, orderId);
+        else
+            orderBook.removeByOrderId(side, orderId);
     }
 
     public void setLastTradePrice(int last_Trade_Price) {
