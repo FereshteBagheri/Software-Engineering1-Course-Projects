@@ -447,12 +447,12 @@ public class StopLimitOrderTest {
         15800, 1, 1, 0, 0, 15000));
 
         assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
-         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
-         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        
-         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
-         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-         verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
     }
 
 }

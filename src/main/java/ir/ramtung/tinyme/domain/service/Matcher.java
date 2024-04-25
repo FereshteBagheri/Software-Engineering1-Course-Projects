@@ -17,10 +17,8 @@ public class Matcher {
         LinkedList<Trade> trades = new LinkedList<>();
 
         if (newOrder instanceof StopLimitOrder stopLimitOrder) {
-            if (stopLimitOrder.isTriggered(stopLimitOrder.getSecurity().getLastTradePrice())){
+            if (stopLimitOrder.isTriggered(stopLimitOrder.getSecurity().getLastTradePrice()))
                 newOrder = stopLimitOrder.active();
-                
-            }
             else
                 return MatchResult.notActivated(stopLimitOrder);
         }
@@ -134,8 +132,10 @@ public class Matcher {
                 return;
 
             Order newOrder = activatableOrders.removeFirst().active();
-            eventPublisher.publish(new OrderActivatedEvent(requestId, newOrder.getOrderId()));
+            if (newOrder.getSide() == Side.BUY)
+                newOrder.getBroker().increaseCreditBy(newOrder.getValue()); 
 
+            eventPublisher.publish(new OrderActivatedEvent(requestId, newOrder.getOrderId()));
             matchResult = execute(newOrder);
             
             if (!matchResult.trades().isEmpty()) {
