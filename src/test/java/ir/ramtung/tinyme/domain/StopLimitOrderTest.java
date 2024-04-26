@@ -430,7 +430,7 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void buy_update_stop_limit_order_activates_it_and_is_matched(){
+    void update_buy_stop_limit_order_activates_it_and_is_matched(){
         long valid_credit_broker1 = broker1.getCredit() - 300* 15800;
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 11, LocalDateTime.now(), Side.BUY, 300,
@@ -443,5 +443,7 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
         assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
     }
+
+
 
 }
