@@ -444,6 +444,22 @@ public class StopLimitOrderTest {
         assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
     }
 
+    @Test
+    void update_sell_stop_limit_order_activates_it_and_is_matched(){
+        long valid_credit_broker2 = broker2.getCredit() + 304* 15700;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 16, LocalDateTime.now(), Side.SELL, 350,
+                15700, 2, 1, 0, 0, 15000));
+
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 1)).isEqualTo(null);
+
+        assertThat(orderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(46);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 16));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 16));
+        assertThat(broker2.getCredit()).isEqualTo(valid_credit_broker2);
+    }
+
 
 
 }
