@@ -305,7 +305,8 @@ public class StopLimitOrderTest {
         int stopPrice = 16500;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 15, LocalDateTime.now(), Side.BUY, newQuantity,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                15, LocalDateTime.now(), Side.BUY, newQuantity,
                 15400, 2, 1, 0, 0, stopPrice));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -325,7 +326,8 @@ public class StopLimitOrderTest {
         int stopPrice = 16500;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 15, LocalDateTime.now(), Side.BUY, 1000,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                15, LocalDateTime.now(), Side.BUY, 1000,
                 newPrice, 2, 1, 0, 0, stopPrice));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -345,7 +347,8 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         //check the number of positions stays the same as before
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 16, LocalDateTime.now(), Side.SELL, newQuantity,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                16, LocalDateTime.now(), Side.SELL, newQuantity,
                 15800, 2, 1, 0, 0, stopPrice));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -499,7 +502,8 @@ public class StopLimitOrderTest {
         int newQuantity = 250;
         LinkedList<StopLimitOrder> valid_buyQueue = stopOrderBook.getBuyQueue();
         LinkedList<Order> valid_sellQueue = orderBook.getSellQueue();
-        long valid_credit = broker1.getCredit() + (stopOrderTest.getQuantity() - newQuantity) * stopOrderTest.getPrice();
+        long valid_credit = broker1.getCredit() + (stopOrderTest.getQuantity() - newQuantity)
+                * stopOrderTest.getPrice();
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 orderId, LocalDateTime.now(), Side.BUY, newQuantity,
@@ -588,7 +592,8 @@ public class StopLimitOrderTest {
     void update_stop_limit_order_activates_some_other_orders_that_not_match(){
         long valid_credit = broker1.getCredit() + 300*15800 - 300*15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                12, LocalDateTime.now(), Side.BUY, 43,
                 15500, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
@@ -615,7 +620,8 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit + 43 * 15500 - 60* 15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 60,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                12, LocalDateTime.now(), Side.BUY, 60,
                 15800, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
@@ -641,7 +647,8 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit - 43 * 300;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                12, LocalDateTime.now(), Side.BUY, 43,
                 15800, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
