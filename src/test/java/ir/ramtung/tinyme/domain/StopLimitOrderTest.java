@@ -558,65 +558,147 @@ public class StopLimitOrderTest {
 
     @Test
     void update_stop_limit_order_causes_activation_and_is_partially_matched(){
+        long valid_credit_broker1 = broker1.getCredit() + 300*15800 - 350*15800 - 50*15805;
 
-        //match does not trigger any stop limit orders
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 400,
+                15805, 1, 1, 0, 0, 15000));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(50);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
     }
 
     @Test
     void update_stop_limit_order_causes_activation_and_is_fully_matched(){
+        long valid_credit_broker1 = broker1.getCredit() + 300*15800 - 300*15800;
 
-        // match does not trigger any stop limit orders
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 300,
+                15805, 1, 1, 0, 0, 15000));
 
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
     }
+
     @Test
-    void update_stop_limit_order_active_some_other_orders_that_not_match(){ //this is wrong
-        long valid_credit_broker1 = broker1.getCredit() - 300* 15800;
+    void update_stop_limit_order_activates_some_other_orders_that_not_match(){
+        long valid_credit = broker1.getCredit() + 300*15800 - 300*15800;
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
                 15500, 1, 1, 0, 0, 15800));
+
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
         verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 11, LocalDateTime.now(), Side.BUY, 300,
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 300,
                 15800, 1, 1, 0, 0, 15000));
-        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
-        assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
-    }
-
-    @Test
-    void update_buy_stop_limit_order_activates_it_and_is_matched(){
-        long valid_credit_broker1 = broker1.getCredit() - 300* 15800;
-
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 11, LocalDateTime.now(), Side.BUY, 300,
-                15800, 1, 1, 0, 0, 15000));
 
         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        assertThat(broker1.getCredit()).isEqualTo(valid_credit_broker1);
+        assertThat(orderBook.findByOrderId(Side.BUY, 12).getQuantity()).isEqualTo(43);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
     }
 
     @Test
-    void update_sell_stop_limit_order_activates_it_and_is_matched(){
-        long valid_credit_broker2 = broker2.getCredit() + 304* 15700;
+    void update_stop_limit_order_activates_some_other_orders_that_partially_match(){
+        long previous_credit = broker1.getCredit();
+        long valid_credit = previous_credit + 43 * 15500 - 60* 15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 16, LocalDateTime.now(), Side.SELL, 350,
-                15700, 2, 1, 0, 0, 15000));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 60,
+                15800, 1, 1, 0, 0, 15800));
 
-        assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 1)).isEqualTo(null);
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
 
-        assertThat(orderBook.findByOrderId(Side.SELL, 16).getQuantity()).isEqualTo(46);
-        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 16));
-        verify(eventPublisher).publish(new OrderActivatedEvent(2, 16));
-        assertThat(broker2.getCredit()).isEqualTo(valid_credit_broker2);
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 300,
+                15800, 1, 1, 0, 0, 15000));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 12).getQuantity()).isEqualTo(10);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
     }
 
+    @Test
+    void update_stop_limit_order_activates_some_other_orders_that_fully_match(){
+        long previous_credit = broker1.getCredit();
+        long valid_credit = previous_credit - 43 * 300;
 
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+                15800, 1, 1, 0, 0, 15800));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 300,
+                15800, 1, 1, 0, 0, 15000));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(7);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
+    }
+
+    @Test
+    void update_buy_stop_order_limit_price_handles_credit_correctly(){
+        long previous_credit = broker1.getCredit();
+        long valid_credit = previous_credit + 43 * 15500 - 43* 15800;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+                15800, 1, 1, 0, 0, 16350));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
+    }
+
+    @Test
+    void update_buy_stop_order_limit_quantity_handles_credit_correctly(){
+        long previous_credit = broker1.getCredit();
+        long valid_credit = previous_credit - 7* 15500;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 50,
+                15500, 1, 1, 0, 0, 16350));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
+    }
+
+    @Test
+    void update_buy_stop_order_limit_stop_price_does_not_change_credit(){
+        long previous_credit = broker1.getCredit();
+        long valid_credit = previous_credit;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+                15500, 1, 1, 0, 0, 15800));
+
+        verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
+        verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
+        assertThat(broker1.getCredit()).isEqualTo(valid_credit);
+    }
 
 }
