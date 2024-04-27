@@ -483,8 +483,9 @@ public class StopLimitOrderTest {
         Order newOrder = new Order(21, security, Side.BUY, 50, 14550, broker1, shareholder);
         orderBook.enqueue(newOrder);
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC", 22, LocalDateTime.now(), 
-                Side.SELL, 2368, 14550, 1, 1, 0, 0, 0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC"
+                , 22, LocalDateTime.now(), Side.SELL, 2368,
+                14550, 1, 1, 0, 0, 0));
 
         assertThat(orderBook.getBuyQueue().isEmpty()).isTrue();
         verify(eventPublisher).publish(new OrderActivatedEvent(1, 16));
@@ -492,7 +493,7 @@ public class StopLimitOrderTest {
    }
 
     @Test
-    void update_stop_limit_order_does_not_lose_priority_by_decrease_quantity() {
+    void update_stop_limit_order_does_not_change_priority_by_decrease_quantity() {
         int orderId = 11;
         StopLimitOrder stopOrderTest = (StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, orderId);
         int newQuantity = 250;
@@ -500,7 +501,8 @@ public class StopLimitOrderTest {
         LinkedList<Order> valid_sellQueue = orderBook.getSellQueue();
         long valid_credit = broker1.getCredit() + (stopOrderTest.getQuantity() - newQuantity) * stopOrderTest.getPrice();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, newQuantity,
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                orderId, LocalDateTime.now(), Side.BUY, newQuantity,
                 15800, 1, 1, 0, 0, 16300));
 
         assertThat(broker1.getCredit()).isEqualTo(valid_credit);
@@ -510,14 +512,15 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void update_stop_limit_order_lose_priority_by_decrease_price_not_activate() {
+    void update_stop_limit_order_changes_priority_and_is_not_activated_by_decrease_price() {
         int orderId = 11;
         int newStopPrice = 16370;
         long previous_credit = broker1.getCredit();
         LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 300,
-        15800, 1, 1, 0, 0, newStopPrice));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                orderId, LocalDateTime.now(), Side.BUY, 300,
+                15800, 1, 1, 0, 0, newStopPrice));
         
         valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 12));
         valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 11));
@@ -531,14 +534,15 @@ public class StopLimitOrderTest {
     }
 
     @Test
-    void update_stop_limit_order_lose_priority_by_decrease_price_activate_not_match() {
+    void update_stop_limit_order_changes_priority_and_is_activated_and_not_matched_by_decrease_price(){
         int orderId = 12;
         int newStopPrice = 14370;
         long previous_credit = broker1.getCredit();
         LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", orderId, LocalDateTime.now(), Side.BUY, 43,
-        15500, 1, 1, 0, 0, newStopPrice));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                orderId, LocalDateTime.now(), Side.BUY, 43,
+                15500, 1, 1, 0, 0, newStopPrice));
         
         valid_buyQueue.add((StopLimitOrder)stopOrderBook.findByOrderId(Side.BUY, 11));
         for (int i = 13; i <= 15; i++){
@@ -552,6 +556,18 @@ public class StopLimitOrderTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(1, orderId));
     }
 
+    @Test
+    void update_stop_limit_order_causes_activation_and_is_partially_matched(){
+
+        //match does not trigger any stop limit orders
+    }
+
+    @Test
+    void update_stop_limit_order_causes_activation_and_is_fully_matched(){
+
+        // match does not trigger any stop limit orders
+
+    }
     @Test
     void update_stop_limit_order_active_some_other_orders_that_not_match(){ //this is wrong
         long valid_credit_broker1 = broker1.getCredit() - 300* 15800;
