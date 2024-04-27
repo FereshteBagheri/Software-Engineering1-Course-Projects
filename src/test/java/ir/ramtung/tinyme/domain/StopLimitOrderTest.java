@@ -359,6 +359,26 @@ public class StopLimitOrderTest {
     }
 
     @Test
+    void buy_stop_limit_order_with_negative_stop_price_is_rejected(){
+        int stopPrice = -15600;
+        int price = 10000;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.BUY, 20000,
+                price, 1, 1, 0, 0, stopPrice));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.INVALID_STOP_PRICE
+        );
+        assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(regularOrders.subList(0, 5));
+    }
+
+    @Test
     void buy_stop_limit_order_with_peaksize_is_rejected(){
         int stopPrice = 15600;
         int price = 10000;
@@ -372,10 +392,30 @@ public class StopLimitOrderTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(21);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.INVALID_STOP_PRICE
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE
         );
         assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
         assertThat(orderBook.getBuyQueue()).isEqualTo(regularOrders.subList(0, 5));
+    }
+
+    @Test
+    void sell_stop_limit_order_with_negative_stop_price_is_rejected(){
+        int stopPrice = -15600;
+        int price = 10000;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.SELL, 20000,
+                price, 1, 1, 0, 0, stopPrice));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.INVALID_STOP_PRICE
+        );
+        assertThat(stopOrderBook.getSellQueue()).isEqualTo(stopOrders.subList(5, 10));
+        assertThat(orderBook.getSellQueue()).isEqualTo(regularOrders.subList(5, 10));
     }
 
     @Test
@@ -392,14 +432,14 @@ public class StopLimitOrderTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(21);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.INVALID_STOP_PRICE
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE
         );
         assertThat(stopOrderBook.getSellQueue()).isEqualTo(stopOrders.subList(5, 10));
         assertThat(orderBook.getSellQueue()).isEqualTo(regularOrders.subList(5, 10));
     }
 
     @Test
-    void stop_limit_order_with_min_execution_quantity_is_rejected(){
+    void buy_stop_limit_order_with_min_execution_quantity_is_rejected(){
         int stopPrice = 15600;
         int price = 10000;
 
@@ -412,10 +452,30 @@ public class StopLimitOrderTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(21);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.INVALID_STOP_PRICE
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY
         );
         assertThat(stopOrderBook.getBuyQueue()).isEqualTo(stopOrders.subList(0, 5));
         assertThat(orderBook.getBuyQueue()).isEqualTo(regularOrders.subList(0, 5));
+    }
+
+    @Test
+    void sell_stop_limit_order_with_min_execution_quantity_is_rejected(){
+        int stopPrice = 15600;
+        int price = 10000;
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+                21, LocalDateTime.now(), Side.SELL, 20000,
+                price, 1, 1, 0, 100, stopPrice));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(21);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY
+        );
+        assertThat(stopOrderBook.getSellQueue()).isEqualTo(stopOrders.subList(5, 10));
+        assertThat(orderBook.getSellQueue()).isEqualTo(regularOrders.subList(5, 10));
     }
 
    @Test

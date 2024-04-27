@@ -19,5 +19,10 @@ public class Message {
     public static final String INVALID_MINIMUM_EXECUTION_QUANTITY = "Minimum execution quantity is out of range";
     public static final String MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED = "Minimum execution quantity not matched";
     public static final String CANNOT_MODIFY_MINIMUM_EXECUTION_QUANTITY = "Cannot modify minimum execution quantity";
-    public static final String INVALID_STOP_PRICE = "Stop price is not allowed";    
+    public static final String INVALID_STOP_PRICE = "Stop price is not-positive";
+
+    public static final String INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE = "Cannot specify peaksize for a stop limit order";
+
+    public static final String INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY = "Cannot specify minimum execution quantity for a stop limit order";
+
 }
