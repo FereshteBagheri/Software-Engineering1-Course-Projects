@@ -10,7 +10,6 @@ import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
-import ir.ramtung.tinyme.messaging.event.OrderRejectedEvent;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -707,5 +706,26 @@ public class StopLimitOrderTest {
         verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
         assertThat(broker1.getCredit()).isEqualTo(valid_credit);
     }
+
+    @Test
+    void update_buy_stop_order_is_activated_and_matched_enqueue() {
+        int orderId = 12;
+        int newStopPrice = 14370;
+
+        // active beshe, match beshe, ok
+        // active beshe, match nashe, nokay
+
+        // in baray not_matched
+        // orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        //         orderId, LocalDateTime.now(), Side.BUY, 43,
+        //         15500, 1, 1, 0, 0, newStopPrice));
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 400,
+                15805, 1, 1, 0, 0, 15000));
+        
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
+    }
+
 
 }
