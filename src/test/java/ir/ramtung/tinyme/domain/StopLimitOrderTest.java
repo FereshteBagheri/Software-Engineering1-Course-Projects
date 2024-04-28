@@ -716,7 +716,8 @@ public class StopLimitOrderTest {
                  orderId, LocalDateTime.now(), Side.BUY, 43,
                  15500, 1, 1, 0, 0, newStopPrice));
 
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
     }
 
 
