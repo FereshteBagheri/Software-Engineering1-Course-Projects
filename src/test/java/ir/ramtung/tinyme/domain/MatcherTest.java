@@ -3,6 +3,16 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
+import ir.ramtung.tinyme.domain.service.OrderHandler;
+import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.messaging.event.OrderAcceptedEvent;
+import ir.ramtung.tinyme.messaging.event.OrderActivatedEvent;
+import ir.ramtung.tinyme.messaging.event.OrderExecutedEvent;
+import ir.ramtung.tinyme.messaging.event.OrderUpdatedEvent;
+import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.repository.BrokerRepository;
+import ir.ramtung.tinyme.repository.SecurityRepository;
+import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +20,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static ir.ramtung.tinyme.domain.entity.Side.BUY;
+import static ir.ramtung.tinyme.domain.entity.Side.SELL;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @Import(MockedJMSTestConfig.class)
@@ -26,15 +39,29 @@ public class MatcherTest {
     private Shareholder shareholder;
     private OrderBook orderBook;
     private List<Order> orders;
+    private StopOrderBook stopOrderBook;
+    private List<StopLimitOrder> stopOrders;
+    @Autowired
+    EventPublisher eventPublisher;
+    @Autowired
+    OrderHandler orderHandler;
+    @Autowired
+    SecurityRepository securityRepository;
+    @Autowired
+    BrokerRepository brokerRepository;
+    @Autowired
+    ShareholderRepository shareholderRepository;
+
     @Autowired
     private Matcher matcher;
 
     @BeforeEach
     void setupOrderBook() {
-        security = Security.builder().build();
-        broker = Broker.builder().credit(100_000_000L).build();
-        shareholder = Shareholder.builder().build();
+        security = Security.builder().isin("ABC").lastTradePrice(15000).build();
+        broker = Broker.builder().credit(100_000_000L).brokerId(1).build();
+        shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
+
         orderBook = security.getOrderBook();
         orders = Arrays.asList(
                 new Order(1, security, BUY, 304, 15700, broker, shareholder),
@@ -49,6 +76,30 @@ public class MatcherTest {
                 new Order(10, security, Side.SELL, 65, 15820, broker, shareholder)
         );
         orders.forEach(order -> orderBook.enqueue(order));
+    }
+
+    private void setUpStopOrderBook(){
+        securityRepository.clear();
+        brokerRepository.clear();
+        shareholderRepository.clear();
+        securityRepository.addSecurity(security);
+        shareholderRepository.addShareholder(shareholder);
+        brokerRepository.addBroker(broker);
+
+        stopOrderBook = security.getStopOrderBook();
+        stopOrders = Arrays.asList(
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400)
+        );
+        stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
 
     @Test
@@ -149,5 +200,81 @@ public class MatcherTest {
         assertThat(security.getOrderBook().getBuyQueue()).hasSize(1);
         assertThat(security.getOrderBook().getBuyQueue().get(0).getQuantity()).isEqualTo(20);
 
+    }
+
+    @Test
+    void execute_triggered_stop_orders_works_when_increasing_last_price(){
+        setUpStopOrderBook();
+        long requestId = 1;
+        matcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350, requestId);
+        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,12));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
+    }
+
+    @Test
+    void execute_triggered_stop_orders_works_when_decreasing_last_price(){
+        setUpStopOrderBook();
+        long requestId = 1;
+        matcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550, requestId);
+        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,16));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
+        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,17));
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 17)).isEqualTo(null);
+    }
+    @Test
+    void change_last_trade_price_activates_stop_order_and_not_matched(){
+        setUpStopOrderBook();
+
+        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
+        orderBook.enqueue(order);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
+                21, LocalDateTime.now(), Side.BUY, 1900,
+                16300, 1, 1, 0, 0, 0));
+
+        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(300);
+    }
+
+    @Test
+    void change_last_trade_price_activates_stop_order_and_partially_matched(){
+        setUpStopOrderBook();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 300,
+                16300, 1, 1, 0, 0, 16300));
+
+        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
+        orderBook.enqueue(order);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
+                21, LocalDateTime.now(), Side.BUY, 1900,
+                16300, 1, 1, 0, 0, 0));
+
+        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(160);
+    }
+
+    @Test
+    void change_last_trade_price_activates_stop_order_and_fully_matched(){
+        setUpStopOrderBook();
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                11, LocalDateTime.now(), Side.BUY, 140,
+                16300, 1, 1, 0, 0, 16300));
+
+        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
+        orderBook.enqueue(order);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
+                21, LocalDateTime.now(), Side.BUY, 1900,
+                16300, 1, 1, 0, 0, 0));
+
+        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
     }
 }

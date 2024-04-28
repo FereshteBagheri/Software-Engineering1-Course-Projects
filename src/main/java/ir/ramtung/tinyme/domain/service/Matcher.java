@@ -119,19 +119,19 @@ public class Matcher {
         return result;
     }
 
-    public void executeActivatableStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
-        LinkedList<StopLimitOrder> activatableOrders = new LinkedList<StopLimitOrder>();
+    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
+        LinkedList<StopLimitOrder> triggeredOrders = new LinkedList<StopLimitOrder>();
         
         MatchResult matchResult;
         while(true) {
             
-            activatableOrders.addAll(security.findTriggeredOrders(lastTradePrice));
+            triggeredOrders.addAll(security.findTriggeredOrders(lastTradePrice));
             security.setLastTradePrice(lastTradePrice);
 
-            if (activatableOrders.isEmpty())
+            if (triggeredOrders.isEmpty())
                 return;
 
-            Order newOrder = activatableOrders.removeFirst().active();
+            Order newOrder = triggeredOrders.removeFirst().active();
             if (newOrder.getSide() == Side.BUY)
                 newOrder.getBroker().increaseCreditBy(newOrder.getValue()); 
 
