@@ -23,6 +23,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import static ir.ramtung.tinyme.domain.entity.Side.BUY;
@@ -223,58 +224,44 @@ public class MatcherTest {
         verify(eventPublisher).publish(new OrderActivatedEvent(requestId,17));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 17)).isEqualTo(null);
     }
+
     @Test
-    void change_last_trade_price_activates_stop_order_and_not_matched(){
-        setUpStopOrderBook();
-
-        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
-        orderBook.enqueue(order);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
-                21, LocalDateTime.now(), Side.BUY, 1900,
-                16300, 1, 1, 0, 0, 0));
-
-        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(300);
+    void new_stop_order_not_activate() {
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500);
+        MatchResult result = matcher.execute(newOrder);
+        assertThat(result).isEqualTo(MatchResult.notActivated(newOrder));
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 15)).isNotEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 15)).isEqualTo(null);
     }
 
     @Test
-    void change_last_trade_price_activates_stop_order_and_partially_matched(){
-        setUpStopOrderBook();
-
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
-                11, LocalDateTime.now(), Side.BUY, 300,
-                16300, 1, 1, 0, 0, 16300));
-
-        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
-        orderBook.enqueue(order);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
-                21, LocalDateTime.now(), Side.BUY, 1900,
-                16300, 1, 1, 0, 0, 0));
-
-        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11).getQuantity()).isEqualTo(160);
+    void new_stop_order_actives_and_not_matched(){
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000);
+        MatchResult result = matcher.execute(newOrder);
+        assertThat(result.remainder().getQuantity()).isEqualTo(1000);
+        assertThat(result.trades().size()).isEqualTo(0);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 15)).isEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 15)).isNotEqualTo(null);
     }
 
     @Test
-    void change_last_trade_price_activates_stop_order_and_fully_matched(){
-        setUpStopOrderBook();
+    void new_stop_order_actives_and_partially_matched(){
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000);
+        MatchResult result = matcher.execute(newOrder);
+        assertThat(result.remainder().getQuantity()).isEqualTo(50);
+        assertThat(result.trades().size()).isEqualTo(1);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 15)).isNotEqualTo(null);
+    }
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
-                11, LocalDateTime.now(), Side.BUY, 140,
-                16300, 1, 1, 0, 0, 16300));
-
-        Order order = new Order(21, security, SELL, 200, 16300, broker, shareholder);
-        orderBook.enqueue(order);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC",
-                21, LocalDateTime.now(), Side.BUY, 1900,
-                16300, 1, 1, 0, 0, 0));
-
-        verify(eventPublisher).publish(new OrderActivatedEvent(1,11));
-        assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
+    @Test
+    void new_stop_order_actives_and_completely_matched(){
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000);
+        MatchResult result = matcher.execute(newOrder);
+        assertThat(result.remainder().getQuantity()).isEqualTo(0);
+        assertThat(result.trades().size()).isEqualTo(1);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 15)).isEqualTo(null);
     }
 }
