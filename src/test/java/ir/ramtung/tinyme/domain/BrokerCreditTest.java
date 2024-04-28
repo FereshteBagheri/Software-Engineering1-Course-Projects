@@ -3,8 +3,6 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
-import ir.ramtung.tinyme.domain.service.OrderHandler;
-import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,10 +129,9 @@ public class BrokerCreditTest {
 
     @Test
     void unchanged_seller_credit_after_sellOrder_deletion() {
-        DeleteOrderRq deleteReq = new DeleteOrderRq(1,"ABC",Side.SELL,6);
         long creditBeforeOrder = broker2.getCredit();
-        Order new_order = new Order(11, security, Side.SELL, 304, 15700, broker1, shareholder);
-        matcher.match(new_order);
+        DeleteOrderRq deleteReq = new DeleteOrderRq(1,"ABC",Side.SELL,6);
+        assertThatNoException().isThrownBy(() -> security.deleteOrder(deleteReq));
         assertThat(broker2.getCredit()).isEqualTo(creditBeforeOrder);
     }
 
