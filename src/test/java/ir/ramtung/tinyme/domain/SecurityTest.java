@@ -218,8 +218,10 @@ class SecurityTest {
         StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
         security.enqueueOrder(stopLimitOrder);
 
-        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isNotEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 22)).isNotEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 22)).isEqualTo(null);
     }
 
     @Test
