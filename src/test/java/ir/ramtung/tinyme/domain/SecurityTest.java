@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import static ir.ramtung.tinyme.domain.entity.Side.BUY;
@@ -26,16 +27,21 @@ class SecurityTest {
     private Security security;
     private Broker broker;
     private Shareholder shareholder;
+    private Broker broker1;
+    private Broker broker2;
     private List<Order> orders;
+    private List<StopLimitOrder> stopOrders;
     @Autowired
     Matcher matcher;
 
     @BeforeEach
     void setupOrderBook() {
-        security = Security.builder().build();
+        security = Security.builder().lastTradePrice(15000).build();
         broker = Broker.builder().brokerId(0).credit(1_000_000L).build();
         shareholder = Shareholder.builder().shareholderId(0).build();
         shareholder.incPosition(security, 100_000);
+        broker1 = Broker.builder().credit(100000000).brokerId(1).build();
+        broker2 = Broker.builder().credit(100000).brokerId(2).build();
         orders = Arrays.asList(
                 new Order(1, security, BUY, 304, 15700, broker, shareholder),
                 new Order(2, security, BUY, 43, 15500, broker, shareholder),
@@ -49,6 +55,20 @@ class SecurityTest {
                 new Order(10, security, Side.SELL, 65, 15820, broker, shareholder)
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
+
+        stopOrders = Arrays.asList(
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 14600),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 14550),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 14500),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 14450),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 14400)
+        );
+        stopOrders.forEach(stopOrder -> security.getStopOrderBook().enqueue(stopOrder));
     }
 
     @Test
@@ -193,27 +213,49 @@ class SecurityTest {
     @Test
     void enqueue_order(){
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
-        Order order = new Order(11, security, Side.BUY, 304, 15700, broker1, shareholder);
+        Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
         security.enqueueOrder(order);
-        StopLimitOrder stopLimitOrder = new StopLimitOrder(12, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
         security.enqueueOrder(stopLimitOrder);
 
-        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
-        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isNotEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 22)).isNotEqualTo(null);
     }
 
     @Test
     void remove_order_by_orderID(){
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
-        Order order = new Order(11, security, Side.BUY, 304, 15700, broker1, shareholder);
-        StopLimitOrder stopLimitOrder = new StopLimitOrder(12, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
         security.getStopOrderBook().enqueue(stopLimitOrder);
         security.getOrderBook().enqueue(order);
 
-        security.removeOrderByOrderId(order, Side.BUY, 11);
-        security.removeOrderByOrderId(stopLimitOrder, Side.BUY, 12);
+        security.removeOrderByOrderId(order, Side.BUY, 21);
+        security.removeOrderByOrderId(stopLimitOrder, Side.BUY, 22);
 
-        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 21)).isEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 22)).isEqualTo(null);
+    }
+
+    @Test
+    void find_triggered_orders_buy_side(){
+        int lastTradePrice = 16450;
+        LinkedList<StopLimitOrder> valid_activeOrders = new LinkedList<>();
+        for (int i = 11; i <= 13; i++){
+            valid_activeOrders.add((StopLimitOrder)security.getStopOrderBook().findByOrderId(Side.BUY, i));
+        }
+        LinkedList<StopLimitOrder> activeOrders = security.findTriggeredOrders(lastTradePrice);
+        assertThat(activeOrders).isEqualTo(valid_activeOrders);
+    }
+
+    @Test
+    void find_triggered_orders_sell_side(){
+        int lastTradePrice = 14530;
+        LinkedList<StopLimitOrder> valid_activeOrders = new LinkedList<>();
+        for (int i = 16; i <= 17; i++){
+            valid_activeOrders.add((StopLimitOrder)security.getStopOrderBook().findByOrderId(Side.SELL, i));
+        }
+        LinkedList<StopLimitOrder> activeOrders = security.findTriggeredOrders(lastTradePrice);
+        assertThat(activeOrders).isEqualTo(valid_activeOrders);
     }
 }
