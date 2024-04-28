@@ -712,18 +712,10 @@ public class StopLimitOrderTest {
         int orderId = 12;
         int newStopPrice = 14370;
 
-        // active beshe, match beshe, ok
-        // active beshe, match nashe, nokay
+         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+                 orderId, LocalDateTime.now(), Side.BUY, 43,
+                 15500, 1, 1, 0, 0, newStopPrice));
 
-        // in baray not_matched
-        // orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
-        //         orderId, LocalDateTime.now(), Side.BUY, 43,
-        //         15500, 1, 1, 0, 0, newStopPrice));
-
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
-                11, LocalDateTime.now(), Side.BUY, 400,
-                15805, 1, 1, 0, 0, 15000));
-        
         assertThat(stopOrderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
     }
 
