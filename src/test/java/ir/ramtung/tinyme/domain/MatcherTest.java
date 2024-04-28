@@ -45,8 +45,6 @@ public class MatcherTest {
     @Autowired
     EventPublisher eventPublisher;
     @Autowired
-    OrderHandler orderHandler;
-    @Autowired
     SecurityRepository securityRepository;
     @Autowired
     BrokerRepository brokerRepository;
