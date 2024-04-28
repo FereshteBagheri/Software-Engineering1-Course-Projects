@@ -190,5 +190,30 @@ class SecurityTest {
         assertThat(result.remainder().getQuantity()).isZero();
     }
 
+    @Test
+    void enqueue_order(){
+        Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
+        Order order = new Order(11, security, Side.BUY, 304, 15700, broker1, shareholder);
+        security.enqueueOrder(order);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(12, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        security.enqueueOrder(stopLimitOrder);
 
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isNotEqualTo(null);
+    }
+
+    @Test
+    void remove_order_by_orderID(){
+        Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
+        Order order = new Order(11, security, Side.BUY, 304, 15700, broker1, shareholder);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(12, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        security.getStopOrderBook().enqueue(stopLimitOrder);
+        security.getOrderBook().enqueue(order);
+
+        security.removeOrderByOrderId(order, Side.BUY, 11);
+        security.removeOrderByOrderId(stopLimitOrder, Side.BUY, 12);
+
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isEqualTo(null);
+    }
 }
