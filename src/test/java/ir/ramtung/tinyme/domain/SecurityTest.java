@@ -199,7 +199,9 @@ class SecurityTest {
         security.enqueueOrder(stopLimitOrder);
 
         assertThat(security.getOrderBook().findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
+        assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 12)).isNotEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 12)).isEqualTo(null);
     }
 
     @Test
