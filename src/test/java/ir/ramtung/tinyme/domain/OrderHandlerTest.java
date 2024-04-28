@@ -139,8 +139,7 @@ public class OrderHandlerTest {
 
     @Test
     void invalid_new_order_with_multiple_errors() {
-        //to do: we should add new errors for invalid minimum and stopPrice
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "XXX", -1, LocalDateTime.now(), Side.SELL, 0, 0, -1, -1, 0, 0, 0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "XXX", -1, LocalDateTime.now(), Side.SELL, 0, 0, -1, -1, 2, 1, -2));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
@@ -152,7 +151,11 @@ public class OrderHandlerTest {
                 Message.ORDER_QUANTITY_NOT_POSITIVE,
                 Message.INVALID_PEAK_SIZE,
                 Message.UNKNOWN_BROKER_ID,
-                Message.UNKNOWN_SHAREHOLDER_ID
+                Message.UNKNOWN_SHAREHOLDER_ID,
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY,
+                Message.INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE,
+                Message.INVALID_STOP_PRICE,
+                Message.INVALID_MINIMUM_EXECUTION_QUANTITY
         );
     }
 
