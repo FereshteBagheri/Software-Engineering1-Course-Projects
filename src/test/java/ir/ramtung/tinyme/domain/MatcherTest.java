@@ -215,7 +215,7 @@ public class MatcherTest {
     }
 
     @Test
-    void new_stop_order_not_activate() {
+    void new_stop_order_is_not_activated() {
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500);
         MatchResult result = matcher.execute(newOrder);
         assertThat(result).isEqualTo(MatchResult.notActivated(newOrder));
@@ -224,7 +224,7 @@ public class MatcherTest {
     }
 
     @Test
-    void new_stop_order_actives_and_not_matched(){
+    void new_stop_order_is_activated_and_not_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000);
         MatchResult result = matcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(1000);
@@ -235,7 +235,7 @@ public class MatcherTest {
     }
 
     @Test
-    void new_stop_order_actives_and_partially_matched(){
+    void new_stop_order_is_activated_and_partially_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000);
         MatchResult result = matcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
@@ -245,7 +245,7 @@ public class MatcherTest {
     }
 
     @Test
-    void new_stop_order_actives_and_completely_matched(){
+    void new_stop_order_is_activated_and_completely_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000);
         MatchResult result = matcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
