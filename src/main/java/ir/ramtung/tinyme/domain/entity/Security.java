@@ -5,6 +5,7 @@ import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.Message;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -23,6 +24,8 @@ public class Security {
     private OrderBook orderBook = new OrderBook();
     @Builder.Default
     private StopOrderBook stopOrderBook = new StopOrderBook();
+    @Builder.Default
+    private MatchingState state = MatchingState.CONTINUOUS;
     private int lastTradePrice;
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
