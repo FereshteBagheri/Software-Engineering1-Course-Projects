@@ -33,7 +33,7 @@ class SecurityTest {
     private List<Order> orders;
     private List<StopLimitOrder> stopOrders;
     @Autowired
-    ContinuousMatcher continuousMatcher;
+    private ContinuousMatcher continuousMatcher;
 
     @BeforeEach
     void setupOrderBook() {
