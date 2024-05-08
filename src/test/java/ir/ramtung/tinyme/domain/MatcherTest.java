@@ -2,6 +2,7 @@ package ir.ramtung.tinyme.domain;
 
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.event.OrderActivatedEvent;
@@ -43,7 +44,7 @@ public class MatcherTest {
     ShareholderRepository shareholderRepository;
 
     @Autowired
-    private Matcher matcher;
+    private ContinuousMatcher continuousMatcher;
 
     @BeforeEach
     void setupOrderBook() {
@@ -96,7 +97,7 @@ public class MatcherTest {
     void new_sell_order_matches_completely_with_part_of_the_first_buy() {
         Order order = new Order(11, security, Side.SELL, 100, 15600, broker, shareholder);
         Trade trade = new Trade(security, 15700, 100, orders.get(0), order);
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
         assertThat(result.trades()).containsExactly(trade);
         assertThat(security.getOrderBook().getBuyQueue().getFirst().getQuantity()).isEqualTo(204);
@@ -106,7 +107,7 @@ public class MatcherTest {
     void new_sell_order_matches_partially_with_the_first_buy() {
         Order order = new Order(11, security, Side.SELL, 500, 15600, broker, shareholder);
         Trade trade = new Trade(security, 15700, 304, orders.get(0), order);
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
         assertThat(result.remainder().getQuantity()).isEqualTo(196);
         assertThat(result.trades()).containsExactly(trade);
         assertThat(security.getOrderBook().getBuyQueue().getFirst().getOrderId()).isEqualTo(2);
@@ -117,7 +118,7 @@ public class MatcherTest {
         Order order = new Order(11, security, Side.SELL, 500, 15500, broker, shareholder);
         Trade trade1 = new Trade(security, 15700, 304, orders.get(0), order);
         Trade trade2 = new Trade(security, 15500, 43, orders.get(1), order.snapshotWithQuantity(196));
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
         assertThat(result.remainder().getQuantity()).isEqualTo(153);
         assertThat(result.trades()).containsExactly(trade1, trade2);
         assertThat(security.getOrderBook().getBuyQueue().getFirst().getOrderId()).isEqualTo(3);
@@ -134,7 +135,7 @@ public class MatcherTest {
             totalTraded += o.getQuantity();
         }
 
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
         assertThat(result.remainder().getQuantity()).isEqualTo(160);
         assertThat(result.trades()).isEqualTo(trades);
         assertThat(security.getOrderBook().getSellQueue()).isEmpty();
@@ -143,7 +144,7 @@ public class MatcherTest {
     @Test
     void new_buy_order_does_not_match() {
         Order order = new Order(11, security, Side.BUY, 2000, 15500, broker, shareholder);
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
         assertThat(result.remainder()).isEqualTo(order);
         assertThat(result.trades()).isEmpty();
     }
@@ -167,7 +168,7 @@ public class MatcherTest {
                 new Trade(security, 15450, 50, orders.get(0).snapshotWithQuantity(50), order.snapshotWithQuantity(130))
         );
 
-        MatchResult result = matcher.match(order);
+        MatchResult result = continuousMatcher.match(order);
 
         assertThat(result.remainder().getQuantity()).isEqualTo(80);
         assertThat(result.trades()).isEqualTo(trades);
@@ -182,7 +183,7 @@ public class MatcherTest {
         );
 
         Order order = new IcebergOrder(1, security, Side.BUY, 120 , 10, broker, shareholder, 40 );
-        MatchResult result = matcher.execute(order);
+        MatchResult result = continuousMatcher.execute(order);
 
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.trades()).hasSize(1);
@@ -196,7 +197,7 @@ public class MatcherTest {
     void execute_triggered_stop_orders_works_when_increasing_last_price(){
         setUpStopOrderBook();
         long requestId = 1;
-        matcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350, requestId);
+        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350, requestId);
         verify(eventPublisher).publish(new OrderActivatedEvent(requestId,11));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         verify(eventPublisher).publish(new OrderActivatedEvent(requestId,12));
@@ -207,7 +208,7 @@ public class MatcherTest {
     void execute_triggered_stop_orders_works_when_decreasing_last_price(){
         setUpStopOrderBook();
         long requestId = 1;
-        matcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550, requestId);
+        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550, requestId);
         verify(eventPublisher).publish(new OrderActivatedEvent(requestId,16));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
         verify(eventPublisher).publish(new OrderActivatedEvent(requestId,17));
@@ -217,7 +218,7 @@ public class MatcherTest {
     @Test
     void new_stop_order_is_not_activated() {
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500);
-        MatchResult result = matcher.execute(newOrder);
+        MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result).isEqualTo(MatchResult.notActivated(newOrder));
         assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 15)).isNotEqualTo(null);
         assertThat(security.getOrderBook().findByOrderId(Side.BUY, 15)).isEqualTo(null);
@@ -226,7 +227,7 @@ public class MatcherTest {
     @Test
     void new_stop_order_is_activated_and_not_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000);
-        MatchResult result = matcher.execute(newOrder);
+        MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(1000);
         assertThat(result.trades().size()).isEqualTo(0);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
@@ -237,7 +238,7 @@ public class MatcherTest {
     @Test
     void new_stop_order_is_activated_and_partially_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000);
-        MatchResult result = matcher.execute(newOrder);
+        MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
         assertThat(result.trades().size()).isEqualTo(1);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
@@ -247,7 +248,7 @@ public class MatcherTest {
     @Test
     void new_stop_order_is_activated_and_completely_matched(){
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000);
-        MatchResult result = matcher.execute(newOrder);
+        MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
         assertThat(result.trades().size()).isEqualTo(1);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);

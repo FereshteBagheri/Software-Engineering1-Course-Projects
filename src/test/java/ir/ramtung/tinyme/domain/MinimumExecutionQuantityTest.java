@@ -2,7 +2,8 @@ package ir.ramtung.tinyme.domain;
 
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
-import ir.ramtung.tinyme.domain.service.Matcher;
+import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
+import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
@@ -38,7 +39,7 @@ public class MinimumExecutionQuantityTest {
     private OrderBook orderBook;
     private List<Order> orders;
     @Autowired
-    private Matcher matcher;
+    private ContinuousMatcher continuousMatcher;
     @Autowired
     EventPublisher eventPublisher;
     @Autowired
@@ -159,7 +160,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 330, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
@@ -170,7 +171,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 300, 15600, broker2, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
         assertThat(orderBook.findByOrderId(Side.SELL, 11)).isEqualTo(null);
@@ -181,7 +182,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 350, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
         assertThat(orderBook.getBuyQueue().peek()).isEqualTo(result.remainder());
@@ -193,7 +194,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15700, broker1, shareholder,
                 LocalDateTime.now(), 304, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
         assertThat(orderBook.getSellQueue().peek()).isEqualTo(result.remainder());
@@ -205,7 +206,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 290, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
         assertThat(orderBook.getBuyQueue().peek()).isEqualTo(result.remainder());
@@ -217,7 +218,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.remainder().getQuantity()).isEqualTo(96);
         assertThat(orderBook.getSellQueue().peek()).isEqualTo(result.remainder());
@@ -229,7 +230,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 360, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.MINIMUM_NOT_MATCHED);
         assertThat(result.remainder()).isEqualTo(null);
         assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
@@ -241,7 +242,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 400, 15600, broker2, shareholder,
                 LocalDateTime.now(), 360, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.MINIMUM_NOT_MATCHED);
         assertThat(result.remainder()).isEqualTo(null);
         assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
@@ -253,7 +254,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.BUY,
                 400, 15800, broker1, shareholder,
                 LocalDateTime.now(), 40, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.remainder().isMinimumQuantityExecuted()).isEqualTo(true);
     }
 
@@ -262,7 +263,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 504, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.remainder().getQuantity()).isEqualTo(200);
         assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
@@ -277,7 +278,7 @@ public class MinimumExecutionQuantityTest {
         Order new_order = new Order(11, security, Side.SELL,
                 504, 15700, broker1, shareholder,
                 LocalDateTime.now(), 300, false);
-        MatchResult result = matcher.execute(new_order);
+        MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.remainder().getQuantity()).isEqualTo(200);
         assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
