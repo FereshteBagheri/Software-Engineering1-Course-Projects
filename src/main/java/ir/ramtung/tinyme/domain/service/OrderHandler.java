@@ -71,6 +71,16 @@ public class OrderHandler {
 
     private void validateEnterOrderRq(EnterOrderRq enterOrderRq) throws InvalidRequestException {
         List<String> errors = new LinkedList<>();
+
+        validateOrderDetails(enterOrderRq, errors);
+        validateSecurity(enterOrderRq, errors);
+        validateBrokerAndShareholder(enterOrderRq, errors);
+
+        if (!errors.isEmpty())
+            throw new InvalidRequestException(errors);
+    }
+
+    private void validateOrderDetails(EnterOrderRq enterOrderRq, List<String> errors) {
         if (enterOrderRq.getOrderId() <= 0)
             errors.add(Message.INVALID_ORDER_ID);
         if (enterOrderRq.getQuantity() <= 0)
@@ -83,10 +93,13 @@ public class OrderHandler {
             errors.add(Message.INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY);
         if (enterOrderRq.getStopPrice() != 0 &&  enterOrderRq.getPeakSize() != 0)
             errors.add(Message.INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE);
-
         if (enterOrderRq.getMinimumExecutionQuantity() < 0 || (enterOrderRq.getMinimumExecutionQuantity() > enterOrderRq.getQuantity() && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER))
             errors.add(Message.INVALID_MINIMUM_EXECUTION_QUANTITY);
+        if (enterOrderRq.getPeakSize() < 0 || enterOrderRq.getPeakSize() >= enterOrderRq.getQuantity())
+            errors.add(Message.INVALID_PEAK_SIZE);
+    }
 
+    private void validateSecurity(EnterOrderRq enterOrderRq, List<String> errors) {
         Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
         if (security == null)
             errors.add(Message.UNKNOWN_SECURITY_ISIN);
@@ -96,15 +109,15 @@ public class OrderHandler {
             if (enterOrderRq.getPrice() % security.getTickSize() != 0)
                 errors.add(Message.PRICE_NOT_MULTIPLE_OF_TICK_SIZE);
         }
+    }
+
+    private void validateBrokerAndShareholder(EnterOrderRq enterOrderRq, List<String> errors) {
         if (brokerRepository.findBrokerById(enterOrderRq.getBrokerId()) == null)
             errors.add(Message.UNKNOWN_BROKER_ID);
         if (shareholderRepository.findShareholderById(enterOrderRq.getShareholderId()) == null)
             errors.add(Message.UNKNOWN_SHAREHOLDER_ID);
-        if (enterOrderRq.getPeakSize() < 0 || enterOrderRq.getPeakSize() >= enterOrderRq.getQuantity())
-            errors.add(Message.INVALID_PEAK_SIZE);
-        if (!errors.isEmpty())
-            throw new InvalidRequestException(errors);
     }
+
 
     private void validateDeleteOrderRq(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
         List<String> errors = new LinkedList<>();
