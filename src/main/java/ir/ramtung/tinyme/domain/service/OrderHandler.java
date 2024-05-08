@@ -48,35 +48,11 @@ public class OrderHandler {
             else
                 matchResult = security.updateOrder(enterOrderRq, continuousMatcher);
 
-            if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
-                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
-                return;
-            }
-            if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
-                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
-                return;
-            }
-            if (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED) {
-                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
-                return;
-            }
+            publishEnterOrderReqEvents(matchResult, enterOrderRq);
 
-            if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
-                eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
-            else
-                eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
-
-            if (matchResult.outcome() == MatchingOutcome.NOT_ACTIVATED && enterOrderRq.getStopPrice() != 0)
-                return;
-            
-            if ((matchResult.outcome() == MatchingOutcome.EXECUTED && matchResult.remainder() != null)  && enterOrderRq.getStopPrice() != 0)
-                eventPublisher.publish(new OrderActivatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
-            
-            if (!matchResult.trades().isEmpty()) {
-                eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+            if (!matchResult.trades().isEmpty())
                 continuousMatcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
-            }
-            
+
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
         }
@@ -139,4 +115,34 @@ public class OrderHandler {
         if (!errors.isEmpty())
             throw new InvalidRequestException(errors);
     }
+
+    private void publishEnterOrderReqEvents(MatchResult matchResult, EnterOrderRq enterOrderRq) {
+        if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
+            return;
+        }
+        if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
+            return;
+        }
+        if (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED) {
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
+            return;
+        }
+
+        if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
+            eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+        else
+            eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+
+        if (matchResult.outcome() == MatchingOutcome.NOT_ACTIVATED && enterOrderRq.getStopPrice() != 0)
+            return;
+
+        if ((matchResult.outcome() == MatchingOutcome.EXECUTED && matchResult.remainder() != null)  && enterOrderRq.getStopPrice() != 0)
+            eventPublisher.publish(new OrderActivatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+
+        if (!matchResult.trades().isEmpty())
+            eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+    }
+
 }
