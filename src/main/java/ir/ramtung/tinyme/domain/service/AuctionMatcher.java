@@ -20,7 +20,14 @@ public class AuctionMatcher extends Matcher {
 
     private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {}
 
-    public MatchResult execute(Order order) { return MatchResult.executed(null, new LinkedList<>());}
+    @Override
+    public MatchResult execute(Order order) {  
+        if (order.getSide() == Side.BUY)
+            order.getBroker().decreaseCreditBy(order.getValue());
+        order.getSecurity().enqueueOrder(order);
+
+        return MatchResult.executed(order, new LinkedList<>());
+    }
 
     public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId) {}
 
