@@ -1,6 +1,5 @@
 package ir.ramtung.tinyme.messaging;
 
-import java.util.List;
 
 public class Message {
     public static final String INVALID_ORDER_ID = "Invalid order ID";

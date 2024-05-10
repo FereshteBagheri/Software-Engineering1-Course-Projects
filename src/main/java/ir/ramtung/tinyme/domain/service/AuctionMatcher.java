@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 public class AuctionMatcher extends Matcher {
     public MatchResult match(LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int openingPrice) {
         LinkedList<Trade> trades = new LinkedList<>();
-        OrderBook orderBook = buyOrders.getFirst().getSecurity().getOrderBook();
 
         while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
             Order buyOrder = buyOrders.getFirst();
@@ -54,13 +53,6 @@ public class AuctionMatcher extends Matcher {
         buyOrder.getBroker().increaseCreditBy((buyOrder.getPrice() - openingPrice) * trade.getQuantity());
         trade.increaseSellersCredit();
     }
-
-
-    private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){}
-
-    private void rollbackSell(Order newOrder, LinkedList<Trade> trades) {}
-
-    private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {}
 
     @Override
     public MatchResult execute(Order order) {  
