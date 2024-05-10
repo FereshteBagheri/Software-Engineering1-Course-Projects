@@ -26,14 +26,16 @@ public class OrderHandler {
     ShareholderRepository shareholderRepository;
     EventPublisher eventPublisher;
     ContinuousMatcher continuousMatcher;
+    AuctionMatcher auctionMatcher;
 
     public OrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository, ShareholderRepository shareholderRepository,
-                        EventPublisher eventPublisher, ContinuousMatcher continuousMatcher) {
+                        EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher) {
         this.securityRepository = securityRepository;
         this.brokerRepository = brokerRepository;
         this.shareholderRepository = shareholderRepository;
         this.eventPublisher = eventPublisher;
         this.continuousMatcher = continuousMatcher;
+        this.auctionMatcher = auctionMatcher;
     }
 
     public void handleEnterOrder(EnterOrderRq enterOrderRq) {
@@ -43,17 +45,19 @@ public class OrderHandler {
             Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
             Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
             validateAuctionStateRules(enterOrderRq, security);
-            
+
+            Matcher matcher = (security.getState() == MatchingState.AUCTION) ? auctionMatcher : continuousMatcher;
+
             MatchResult matchResult;
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
-                matchResult = security.newOrder(enterOrderRq, broker, shareholder, continuousMatcher);
+                matchResult = security.newOrder(enterOrderRq, broker, shareholder, matcher);
             else
-                matchResult = security.updateOrder(enterOrderRq, continuousMatcher);
+                matchResult = security.updateOrder(enterOrderRq, matcher);
 
             publishEnterOrderReqEvents(matchResult, enterOrderRq);
 
             if (!matchResult.trades().isEmpty())
-                continuousMatcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
+                matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
 
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
