@@ -97,7 +97,9 @@ public class OrderBook {
         LinkedList<Order> orders = new LinkedList<>();
         LinkedList<Order> queue = this.getQueue(side);
         for (Order order : queue) {
-            if (order.getPrice() >= openingPrice)
+            if (order.getSide() == Side.BUY && order.getPrice() >= openingPrice)
+                orders.add(order);
+            if (order.getSide() == Side.SELL && order.getPrice() <= openingPrice)
                 orders.add(order);
         }
         return orders;

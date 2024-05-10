@@ -66,7 +66,6 @@ public class Matcher {
                 trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
                 trade.getSell().getShareholder().decPosition(trade.getSecurity(), trade.getQuantity());
             }
+        }
     }
-}
-
 }
