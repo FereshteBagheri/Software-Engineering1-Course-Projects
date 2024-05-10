@@ -12,7 +12,49 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuctionMatcher extends Matcher {
-    public MatchResult match(Order newOrder) { return MatchResult.executed(null, new LinkedList<>()); }
+    public MatchResult match(LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int openingPrice) {
+        LinkedList<Trade> trades = new LinkedList<>();
+        OrderBook orderBook = buyOrders.getFirst().getSecurity().getOrderBook();
+
+        while (!buyOrders.isEmpty() && !sellOrders.isEmpty()) {
+            Order buyOrder = buyOrders.getFirst();
+            Order sellOrder = sellOrders.getFirst();
+
+            int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
+            Trade trade = new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
+
+            if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
+                removeOrder(buyOrder);
+                removeOrder(sellOrder);
+                sellOrders.removeFirst();
+            } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
+                buyOrder.decreaseQuantity(trade.getQuantity());
+                sellOrder.getSecurity().removeOrderByOrderId(sellOrder, sellOrder.getSide(), sellOrder.getOrderId());
+                sellOrders.removeFirst();
+                handleIcebergOrder(sellOrder);
+            } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
+                sellOrder.decreaseQuantity(trade.getQuantity());
+                buyOrder.getSecurity().removeOrderByOrderId(buyOrder, buyOrder.getSide(), buyOrder.getOrderId());
+                buyOrders.removeFirst();
+                handleIcebergOrder(buyOrder);
+            }
+
+            adjustCredit(buyOrder, trade, openingPrice);
+            trades.add(trade);
+        }
+
+        return MatchResult.executed(null, trades);
+    }
+
+    private void removeOrder(Order order) {
+        order.getSecurity().removeOrderByOrderId(order, order.getSide(), order.getOrderId());
+    }
+
+    private void adjustCredit(Order buyOrder, Trade trade, int openingPrice) {
+        buyOrder.getBroker().increaseCreditBy((buyOrder.getPrice() - openingPrice) * trade.getQuantity());
+        trade.increaseSellersCredit();
+    }
+
 
     private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){}
 
