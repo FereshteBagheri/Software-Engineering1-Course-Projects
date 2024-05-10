@@ -8,6 +8,7 @@ import ir.ramtung.tinyme.messaging.TradeDTO;
 import ir.ramtung.tinyme.messaging.event.*;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.messaging.request.OrderEntryType;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
@@ -41,7 +42,8 @@ public class OrderHandler {
             Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
             Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
             Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
-
+            validateAuctionStateRules(enterOrderRq, security);
+            
             MatchResult matchResult;
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 matchResult = security.newOrder(enterOrderRq, broker, shareholder, continuousMatcher);
@@ -127,6 +129,15 @@ public class OrderHandler {
             errors.add(Message.UNKNOWN_SECURITY_ISIN);
         if (!errors.isEmpty())
             throw new InvalidRequestException(errors);
+    }
+
+    private void validateAuctionStateRules(EnterOrderRq enterOrderRq, Security security) throws InvalidRequestException {
+        if (security.getState() == MatchingState.AUCTION) {
+            if (enterOrderRq.getMinimumExecutionQuantity() > 0)
+                throw new InvalidRequestException(Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
+            if (enterOrderRq.getStopPrice() != 0)
+                throw new InvalidRequestException(Message.STOP_PRICE_IN_AUCTION);
+        }
     }
 
     private void publishEnterOrderReqEvents(MatchResult matchResult, EnterOrderRq enterOrderRq) {
