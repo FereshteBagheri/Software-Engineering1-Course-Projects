@@ -8,7 +8,7 @@ import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
 import lombok.Builder;
 import lombok.Getter;
-
+import ir.ramtung.tinyme.domain.entity.CustomPair;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -150,11 +150,6 @@ public class Security {
         this.state = targetState;
     }
 
-    public class CustomPair {
-        private int key;
-        private int value;
-    }
-
     public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue){
         int exchangedQuantityValue = 0;
         int maxSellPrice = 0;
@@ -165,8 +160,8 @@ public class Security {
             } else
                 break;
         }
-        CustomPair ret = new CustomPair(exchangedQuantityValue, maxSellPrice);
-        return ret;
+        CustomPair pair = new CustomPair(exchangedQuantityValue, maxSellPrice);
+        return pair;
     }
 
     public int findOpeningPrice(){
@@ -176,9 +171,9 @@ public class Security {
         LinkedList<Order> buyQueue = orderBook.getBuyQueue();
         LinkedList<Order> sellQueue = orderBook.getSellQueue();
         for(Order buyOrder: buyQueue){
-            CustomPair ret = exchangedQuantity(buyOrder.getPrice(), sellQueue);
-            int exchangedQuantityValue = ret.key;
-            int sellPrice = ret.value;
+            CustomPair pair = exchangedQuantity(buyOrder.getPrice(), sellQueue);
+            int exchangedQuantityValue = pair.getFirst();
+            int sellPrice = pair.getSecond();
     	    if (exchangedQuantityValue > maxExchangedQuantity){
                 openingPrice = buyOrder.getPrice();
                 maxExchangedQuantity = exchangedQuantityValue;
