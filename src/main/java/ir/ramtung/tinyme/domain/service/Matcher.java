@@ -8,6 +8,7 @@ import ir.ramtung.tinyme.messaging.event.OrderActivatedEvent;
 import ir.ramtung.tinyme.messaging.event.OrderExecutedEvent;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -58,4 +59,14 @@ public class Matcher {
             }
         }
     }
+
+    public void updatePositionsFromTrades(List<Trade> trades) {
+        if (!trades.isEmpty()) {
+            for (Trade trade : trades) {
+                trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
+                trade.getSell().getShareholder().decPosition(trade.getSecurity(), trade.getQuantity());
+            }
+    }
+}
+
 }

@@ -41,7 +41,8 @@ public class AuctionMatcher extends Matcher {
             adjustCredit(buyOrder, trade, openingPrice);
             trades.add(trade);
         }
-
+        
+        updatePositionsFromTrades(trades);
         return MatchResult.executed(null, trades);
     }
 

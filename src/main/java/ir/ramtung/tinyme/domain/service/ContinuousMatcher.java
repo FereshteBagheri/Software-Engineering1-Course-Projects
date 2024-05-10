@@ -105,12 +105,7 @@ public class ContinuousMatcher extends Matcher{
         if (!result.remainder().isMinimumQuantityExecuted())
             result.remainder().setMinimumQuantityExecuted();
 
-        if (!result.trades().isEmpty()) {
-            for (Trade trade : result.trades()) {
-                trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
-                trade.getSell().getShareholder().decPosition(trade.getSecurity(), trade.getQuantity());
-            }
-        }
+        updatePositionsFromTrades(result.trades());
         return result;
     }
 
