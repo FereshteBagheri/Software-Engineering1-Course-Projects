@@ -145,4 +145,8 @@ public class Security {
     public LinkedList<Order> findOpenOrders(int openingPrice, Side side) {
         return orderBook.findOpenOrders(openingPrice, side);
     }
+
+    public void setMatchingState(MatchingState targetState) {
+        this.state = targetState;
+    }
 }
