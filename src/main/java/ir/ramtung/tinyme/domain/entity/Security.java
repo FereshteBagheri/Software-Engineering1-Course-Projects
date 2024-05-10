@@ -141,4 +141,8 @@ public class Security {
     public void setLastTradePrice(int last_Trade_Price) {
         this.lastTradePrice = last_Trade_Price;
     }
+
+    public LinkedList<Order> findOpenOrders(int openingPrice, Side side) {
+        return orderBook.findOpenOrders(openingPrice, side);
+    }
 }

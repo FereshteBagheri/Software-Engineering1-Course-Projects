@@ -92,4 +92,14 @@ public class OrderBook {
                 .mapToInt(Order::getTotalQuantity)
                 .sum();
     }
+
+    public LinkedList<Order> findOpenOrders(int openingPrice, Side side) {
+        LinkedList<Order> orders = new LinkedList<>();
+        LinkedList<Order> queue = this.getQueue(side);
+        for (Order order : queue) {
+            if (order.getPrice() >= openingPrice)
+                orders.add(order);
+        }
+        return orders;
+    }
 }
