@@ -149,4 +149,50 @@ public class Security {
     public void setMatchingState(MatchingState targetState) {
         this.state = targetState;
     }
+
+    public class CustomPair {
+        private int key;
+        private int value;
+    }
+
+    public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue){
+        int exchangedQuantityValue = 0;
+        int maxSellPrice = 0;
+        for(Order sellOrder: sellQueue){
+            if (sellOrder.getPrice() <= buyPrice){
+                exchangedQuantityValue += sellOrder.getQuantity();
+                maxSellPrice = sellOrder.getPrice();
+            } else
+                break;
+        }
+        CustomPair ret = new CustomPair(exchangedQuantityValue, maxSellPrice);
+        return ret;
+    }
+
+    public int findOpeningPrice(){
+        int openingPrice = lastTradePrice;
+        int maxExchangedQuantity = 0;
+        int maxSellPrice = 0;
+        LinkedList<Order> buyQueue = orderBook.getBuyQueue();
+        LinkedList<Order> sellQueue = orderBook.getSellQueue();
+        for(Order buyOrder: buyQueue){
+            CustomPair ret = exchangedQuantity(buyOrder.getPrice(), sellQueue);
+            int exchangedQuantityValue = ret.key;
+            int sellPrice = ret.value;
+    	    if (exchangedQuantityValue > maxExchangedQuantity){
+                openingPrice = buyOrder.getPrice();
+                maxExchangedQuantity = exchangedQuantityValue;
+                maxSellPrice = sellPrice;
+            } else if (exchangedQuantityValue == maxExchangedQuantity){
+                if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - buyOrder.getPrice())){
+                    openingPrice = buyOrder.getPrice();
+                    maxExchangedQuantity = exchangedQuantityValue;
+                    maxSellPrice = sellPrice;
+                }
+            }
+        }
+        if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxSellPrice))
+            openingPrice = maxSellPrice;
+        return openingPrice;
+    }
 }
