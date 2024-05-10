@@ -62,7 +62,4 @@ public class AuctionMatcher extends Matcher {
 
         return MatchResult.executed(order, new LinkedList<>());
     }
-
-    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId) {}
-
 }

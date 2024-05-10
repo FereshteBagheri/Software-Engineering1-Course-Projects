@@ -114,29 +114,5 @@ public class ContinuousMatcher extends Matcher{
         return result;
     }
 
-    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
-        LinkedList<StopLimitOrder> triggeredOrders = new LinkedList<StopLimitOrder>();
-        
-        MatchResult matchResult;
-        while(true) {
-            
-            triggeredOrders.addAll(security.findTriggeredOrders(lastTradePrice));
-            security.setLastTradePrice(lastTradePrice);
 
-            if (triggeredOrders.isEmpty())
-                return;
-
-            Order newOrder = triggeredOrders.removeFirst().active();
-            if (newOrder.getSide() == Side.BUY)
-                newOrder.getBroker().increaseCreditBy(newOrder.getValue()); 
-
-            eventPublisher.publish(new OrderActivatedEvent(requestId, newOrder.getOrderId()));
-            matchResult = execute(newOrder);
-            
-            if (!matchResult.trades().isEmpty()) {
-                lastTradePrice = matchResult.trades().getLast().getPrice();
-                eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
-            }
-        }
-    }
 }
