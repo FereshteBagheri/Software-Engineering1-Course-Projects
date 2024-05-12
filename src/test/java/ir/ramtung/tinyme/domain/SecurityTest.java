@@ -263,7 +263,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_only_one_valid_price(){
+    void find_opening_price_only_one_with_max_exchanged_quantity(){
         List<Order> newOrders = Arrays.asList(
             new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
             new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
@@ -279,7 +279,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_two_valid_price_with_different_difference_to_last_trade_price(){
+    void find_opening_price_with_two_different_prices_and_differences_to_last_trade_price(){
         security.setLastTradePrice(15804);
         List<Order> newOrders = Arrays.asList(
                 new Order(11, security, Side.BUY, 304, 15805, broker, shareholder),
