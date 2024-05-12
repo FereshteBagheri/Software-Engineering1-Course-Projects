@@ -4,24 +4,23 @@ import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
-import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
-import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
+import ir.ramtung.tinyme.repository.BrokerRepository;
+import ir.ramtung.tinyme.repository.SecurityRepository;
+import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
-import ch.qos.logback.core.joran.action.Action;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import static ir.ramtung.tinyme.domain.entity.Side.BUY;
-import static ir.ramtung.tinyme.domain.entity.Side.SELL;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -29,6 +28,12 @@ import static org.assertj.core.api.Assertions.*;
 public class AuctionMatcherTest {
     @Autowired
     OrderHandler orderHandler;
+    @Autowired
+    SecurityRepository securityRepository;
+    @Autowired
+    BrokerRepository brokerRepository;
+    @Autowired
+    ShareholderRepository shareholderRepository;
     private Security security;
     private Broker broker;
     private Shareholder shareholder;
@@ -39,10 +44,19 @@ public class AuctionMatcherTest {
 
     @BeforeEach
     void setupOrderBook() {
-        security = Security.builder().lastTradePrice(15000).build();
+        securityRepository.clear();
+        brokerRepository.clear();
+        shareholderRepository.clear();
+
+        security = Security.builder().lastTradePrice(15000).state(MatchingState.AUCTION).build();
         broker = Broker.builder().brokerId(0).credit(1_000_000L).build();
         shareholder = Shareholder.builder().shareholderId(0).build();
         shareholder.incPosition(security, 100_000);
+
+        securityRepository.addSecurity(security);
+        shareholderRepository.addShareholder(shareholder);
+        brokerRepository.addBroker(broker);
+
         orderBook = security.getOrderBook();
         orders = Arrays.asList(
             new Order(1, security, Side.BUY, 445, 16000, broker, shareholder),
@@ -64,6 +78,11 @@ public class AuctionMatcherTest {
         orders.forEach(order -> orderBook.enqueue(order));
     }
 
+    @Test
+    void check_update() {
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, security.getIsin(), 1, LocalDateTime.now(), Side.BUY, 160, 17000, 0, 0, 0, 0, 0));
+        System.out.println(security.getOrderBook().findByOrderId(Side.BUY, 1));
+    }
     @Test
     void check_matcher(){
         CustomPair pair = security.findOpeningPrice();
