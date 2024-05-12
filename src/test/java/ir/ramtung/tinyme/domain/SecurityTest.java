@@ -3,7 +3,6 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
-import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
@@ -273,9 +272,11 @@ class SecurityTest {
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
-        int openingPrice = security.findOpeningPrice();
+        CustomPair pair = security.findOpeningPrice();
         int validOpeningPrice = 15800;
-        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+        int validExchangedQuantity = 792;
+        assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
+        assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
     }
 
     @Test
@@ -290,9 +291,11 @@ class SecurityTest {
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
-        int openingPrice = security.findOpeningPrice();
+        CustomPair pair = security.findOpeningPrice();
         int validOpeningPrice = 15805;
-        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+        int validExchangedQuantity = 792;
+        assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
+        assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
     }
 
     @Test
@@ -307,9 +310,43 @@ class SecurityTest {
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
-        int openingPrice = security.findOpeningPrice();
+        CustomPair pair = security.findOpeningPrice();
         int validOpeningPrice = 15800;
-        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+        int validExchangedQuantity = 792;
+        assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
+        assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
     }
+
+    @Test
+    void find_open_orders(){
+        List<Order> newOrders = Arrays.asList(
+            new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
+            new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+            new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+            new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+            new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+        );
+        newOrders.forEach(order -> security.getOrderBook().enqueue(order));
+
+        CustomPair pair = security.findOpeningPrice();
+
+        LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
+        LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+
+        LinkedList<Order> validBuyQueue = new LinkedList<>();
+        LinkedList<Order> validSellQueue = new LinkedList<>();
+
+        for (int i = 13; i >= 11; i--){
+            validBuyQueue.add((Order)security.getOrderBook().findByOrderId(Side.BUY, i));
+        }
+        for (int i = 15; i >= 6; i--){
+            if (i >= 14 || i==6)
+                validSellQueue.add((Order)security.getOrderBook().findByOrderId(Side.SELL, i));
+        }
+        assertThat(openBuyOrders).isEqualTo(validBuyQueue);
+        assertThat(openSellOrders).isEqualTo(validSellQueue);
+    }
+
+    
 
 }
