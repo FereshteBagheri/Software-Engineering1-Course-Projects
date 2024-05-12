@@ -263,13 +263,47 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price(){
+    void find_opening_price_only_one_valid_price(){
         List<Order> newOrders = Arrays.asList(
             new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
             new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
             new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
             new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
             new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+        );
+        newOrders.forEach(order -> security.getOrderBook().enqueue(order));
+
+        int openingPrice = security.findOpeningPrice();
+        int validOpeningPrice = 15800;
+        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+    }
+
+    @Test
+    void find_opening_price_two_valid_price_with_different_difference_to_last_trade_price(){
+        security.setLastTradePrice(15804);
+        List<Order> newOrders = Arrays.asList(
+                new Order(11, security, Side.BUY, 304, 15805, broker, shareholder),
+                new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+                new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+                new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+                new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+        );
+        newOrders.forEach(order -> security.getOrderBook().enqueue(order));
+
+        int openingPrice = security.findOpeningPrice();
+        int validOpeningPrice = 15805;
+        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+    }
+
+    @Test
+    void find_opening_price_two_valid_price_with_same_difference_to_last_trade_price(){
+        security.setLastTradePrice(15803);
+        List<Order> newOrders = Arrays.asList(
+                new Order(11, security, Side.BUY, 304, 15806, broker, shareholder),
+                new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+                new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+                new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+                new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
