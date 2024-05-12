@@ -168,13 +168,16 @@ public class Security {
         int openingPrice = lastTradePrice;
         int maxExchangedQuantity = 0;
         int maxSellPrice = 0;
+        int exchangedQuantityValueSideBuy = 0;
         LinkedList<Order> buyQueue = orderBook.getBuyQueue();
         LinkedList<Order> sellQueue = orderBook.getSellQueue();
         for(Order buyOrder: buyQueue){
+            exchangedQuantityValueSideBuy += buyOrder.getQuantity();
             CustomPair pair = exchangedQuantity(buyOrder.getPrice(), sellQueue);
-            int exchangedQuantityValue = pair.getFirst();
+            int exchangedQuantityValueSideSell = pair.getFirst();
+            int exchangedQuantityValue = Math.min(exchangedQuantityValueSideSell, exchangedQuantityValueSideBuy);
             int sellPrice = pair.getSecond();
-    	    if (exchangedQuantityValue > maxExchangedQuantity){
+            if (exchangedQuantityValue > maxExchangedQuantity){
                 openingPrice = buyOrder.getPrice();
                 maxExchangedQuantity = exchangedQuantityValue;
                 maxSellPrice = sellPrice;

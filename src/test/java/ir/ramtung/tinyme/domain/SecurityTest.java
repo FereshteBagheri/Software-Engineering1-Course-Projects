@@ -44,11 +44,11 @@ class SecurityTest {
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
         orders = Arrays.asList(
-                new Order(1, security, BUY, 304, 15700, broker, shareholder),
-                new Order(2, security, BUY, 43, 15500, broker, shareholder),
-                new Order(3, security, BUY, 445, 15450, broker, shareholder),
-                new Order(4, security, BUY, 526, 15450, broker, shareholder),
-                new Order(5, security, BUY, 1000, 15400, broker, shareholder),
+                new Order(1, security, Side.BUY, 304, 15700, broker, shareholder),
+                new Order(2, security, Side.BUY, 43, 15500, broker, shareholder),
+                new Order(3, security, Side.BUY, 445, 15450, broker, shareholder),
+                new Order(4, security, Side.BUY, 526, 15450, broker, shareholder),
+                new Order(5, security, Side.BUY, 1000, 15400, broker, shareholder),
                 new Order(6, security, Side.SELL, 350, 15800, broker, shareholder),
                 new Order(7, security, Side.SELL, 285, 15810, broker, shareholder),
                 new Order(8, security, Side.SELL, 800, 15810, broker, shareholder),
@@ -261,4 +261,21 @@ class SecurityTest {
         LinkedList<StopLimitOrder> activeOrders = security.findTriggeredOrders(lastTradePrice);
         assertThat(activeOrders).isEqualTo(valid_activeOrders);
     }
+
+    @Test
+    void find_opening_price(){
+        List<Order> newOrders = Arrays.asList(
+            new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
+            new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+            new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+            new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+            new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+        );
+        newOrders.forEach(order -> security.getOrderBook().enqueue(order));
+
+        int openingPrice = security.findOpeningPrice();
+        int validOpeningPrice = 15800;
+        assertThat(openingPrice).isEqualTo(validOpeningPrice);
+    }
+
 }
