@@ -150,47 +150,70 @@ public class Security {
         this.state = targetState;
     }
 
-    public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue){
+    public class CustomPair {
+        private int first;
+        private int second;
+    
+        public CustomPair(int firstValue, int secondValue) {
+            this.first = firstValue;
+            this.second = secondValue;
+        }
+    
+        public int getFirst() {
+            return this.first;
+        }
+    
+        public int getSecond() {
+            return this.second;
+        }
+    }
+    
+    public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue) {
         int exchangedQuantityValue = 0;
         int maxSellPrice = 0;
-        for(Order sellOrder: sellQueue){
-            if (sellOrder.getPrice() <= buyPrice){
+
+        for (Order sellOrder : sellQueue) {
+            if (sellOrder.getPrice() <= buyPrice) {
                 exchangedQuantityValue += sellOrder.getQuantity();
                 maxSellPrice = sellOrder.getPrice();
-            } else
+            } else {
                 break;
+            }
         }
-        CustomPair pair = new CustomPair(exchangedQuantityValue, maxSellPrice);
-        return pair;
+
+        return new CustomPair(exchangedQuantityValue, maxSellPrice);
     }
 
-    public int findOpeningPrice(){
+    public int findOpeningPrice() {
         int openingPrice = lastTradePrice;
         int maxExchangedQuantity = 0;
         int maxSellPrice = 0;
         int exchangedQuantityValueSideBuy = 0;
+
         LinkedList<Order> buyQueue = orderBook.getBuyQueue();
         LinkedList<Order> sellQueue = orderBook.getSellQueue();
-        for(Order buyOrder: buyQueue){
+
+        for (Order buyOrder : buyQueue) {
             exchangedQuantityValueSideBuy += buyOrder.getQuantity();
             CustomPair pair = exchangedQuantity(buyOrder.getPrice(), sellQueue);
             int exchangedQuantityValueSideSell = pair.getFirst();
             int exchangedQuantityValue = Math.min(exchangedQuantityValueSideSell, exchangedQuantityValueSideBuy);
             int sellPrice = pair.getSecond();
-            if (exchangedQuantityValue > maxExchangedQuantity){
+
+            if (exchangedQuantityValue > maxExchangedQuantity
+                    || (exchangedQuantityValue == maxExchangedQuantity
+                    && Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - buyOrder.getPrice()))) {
                 openingPrice = buyOrder.getPrice();
                 maxExchangedQuantity = exchangedQuantityValue;
                 maxSellPrice = sellPrice;
-            } else if (exchangedQuantityValue == maxExchangedQuantity){
-                if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - buyOrder.getPrice())){
-                    openingPrice = buyOrder.getPrice();
-                    maxExchangedQuantity = exchangedQuantityValue;
-                    maxSellPrice = sellPrice;
-                }
             }
         }
-        if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxSellPrice))
+
+        if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxSellPrice)) {
             openingPrice = maxSellPrice;
+        }
+
         return openingPrice;
     }
+    
 }
