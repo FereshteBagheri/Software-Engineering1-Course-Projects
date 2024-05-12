@@ -14,7 +14,7 @@ class OrderBookTest {
     private List<Order> orders;
     @BeforeEach
     void setupOrderBook() {
-        security = Security.builder().build();
+        security = Security.builder().isin("ABC").lastTradePrice(17570).build();
         Broker broker = Broker.builder().build();
         Shareholder shareholder = Shareholder.builder().build();
         shareholder.incPosition(security, 100_000);

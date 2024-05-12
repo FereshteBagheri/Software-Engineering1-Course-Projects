@@ -55,15 +55,17 @@ public class MinimumExecutionQuantityTest {
         securityRepository.clear();
         brokerRepository.clear();
         shareholderRepository.clear();
-        security = Security.builder().isin("ABC").build();
-        securityRepository.addSecurity(security);
+
+        security = Security.builder().isin("ABC").lastTradePrice(15750).build();
 
         shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
-        shareholderRepository.addShareholder(shareholder);
 
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
+
+        shareholderRepository.addShareholder(shareholder);
+        securityRepository.addSecurity(security);
         brokerRepository.addBroker(broker1);
         brokerRepository.addBroker(broker2);
 

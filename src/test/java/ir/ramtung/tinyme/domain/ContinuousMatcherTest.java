@@ -48,10 +48,18 @@ public class ContinuousMatcherTest {
 
     @BeforeEach
     void setupOrderBook() {
+        securityRepository.clear();
+        brokerRepository.clear();
+        shareholderRepository.clear();
+
         security = Security.builder().isin("ABC").lastTradePrice(15000).build();
         broker = Broker.builder().credit(100_000_000L).brokerId(1).build();
         shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
+
+        securityRepository.addSecurity(security);
+        shareholderRepository.addShareholder(shareholder);
+        brokerRepository.addBroker(broker);
 
         orderBook = security.getOrderBook();
         orders = Arrays.asList(
@@ -70,13 +78,6 @@ public class ContinuousMatcherTest {
     }
 
     private void setUpStopOrderBook(){
-        securityRepository.clear();
-        brokerRepository.clear();
-        shareholderRepository.clear();
-        securityRepository.addSecurity(security);
-        shareholderRepository.addShareholder(shareholder);
-        brokerRepository.addBroker(broker);
-
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
                 new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300),

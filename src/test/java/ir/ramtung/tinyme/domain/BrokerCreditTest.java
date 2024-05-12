@@ -36,10 +36,10 @@ public class BrokerCreditTest {
 
     @BeforeEach
     void setupOrderBook() {
-        security = Security.builder().isin("ABC").build();
+        security = Security.builder().isin("ABC").lastTradePrice(15750).build();
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
-        shareholder = Shareholder.builder().build();
+        shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
         orderBook = security.getOrderBook();
         orders = Arrays.asList(

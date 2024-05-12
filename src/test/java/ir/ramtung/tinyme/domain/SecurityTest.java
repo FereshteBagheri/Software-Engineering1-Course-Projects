@@ -6,6 +6,9 @@ import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.repository.BrokerRepository;
+import ir.ramtung.tinyme.repository.SecurityRepository;
+import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +34,34 @@ class SecurityTest {
     private Broker broker2;
     private List<Order> orders;
     private List<StopLimitOrder> stopOrders;
+
+    @Autowired
+    SecurityRepository securityRepository;
+    @Autowired
+    BrokerRepository brokerRepository;
+    @Autowired
+    ShareholderRepository shareholderRepository;
     @Autowired
     private ContinuousMatcher continuousMatcher;
 
     @BeforeEach
     void setupOrderBook() {
+        securityRepository.clear();
+        brokerRepository.clear();
+        shareholderRepository.clear();
+
         security = Security.builder().lastTradePrice(15000).build();
         broker = Broker.builder().brokerId(0).credit(1_000_000L).build();
         shareholder = Shareholder.builder().shareholderId(0).build();
         shareholder.incPosition(security, 100_000);
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
+
+        securityRepository.addSecurity(security);
+        shareholderRepository.addShareholder(shareholder);
+        brokerRepository.addBroker(broker1);
+        brokerRepository.addBroker(broker2);
+
         orders = Arrays.asList(
                 new Order(1, security, Side.BUY, 304, 15700, broker, shareholder),
                 new Order(2, security, Side.BUY, 43, 15500, broker, shareholder),

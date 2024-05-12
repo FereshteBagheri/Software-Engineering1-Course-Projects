@@ -61,13 +61,13 @@ public class StopLimitOrderTest {
         shareholderRepository.clear();
 
         security = Security.builder().isin("ABC").lastTradePrice(15000).build();
-        securityRepository.addSecurity(security);
-
         shareholder = Shareholder.builder().shareholderId(1).build();
         shareholder.incPosition(security, 100_000);
-        shareholderRepository.addShareholder(shareholder);
         broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         broker2 = Broker.builder().credit(100000).brokerId(2).build();
+
+        securityRepository.addSecurity(security);
+        shareholderRepository.addShareholder(shareholder);
         brokerRepository.addBroker(broker1);
         brokerRepository.addBroker(broker2);
 
