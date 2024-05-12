@@ -52,7 +52,8 @@ public class OrderHandler {
                 matchResult = security.updateOrder(enterOrderRq, matcher);
 
             publishEnterOrderReqEvents(matchResult, enterOrderRq);
-
+            CustomPair pair = security.findOpeningPrice();
+            eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), pair.getFirst(), pair.getSecond()));
             if (!matchResult.trades().isEmpty())
                 matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
 
@@ -89,7 +90,9 @@ public class OrderHandler {
     }
 
     private void openSecurity(Security security, long requestId) {
-        int openingPrice = 0;
+        CustomPair pair = security.findOpeningPrice();
+        int openingPrice = pair.getFirst();
+        eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), openingPrice, pair.getSecond()));
         LinkedList<Order> openBuyOrders = security.findOpenOrders(openingPrice, Side.BUY); 
         LinkedList<Order> openSellOrders = security.findOpenOrders(openingPrice, Side.SELL); 
         MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);

@@ -8,7 +8,6 @@ import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
 import lombok.Builder;
 import lombok.Getter;
-import ir.ramtung.tinyme.domain.entity.CustomPair;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -149,24 +148,6 @@ public class Security {
     public void setMatchingState(MatchingState targetState) {
         this.state = targetState;
     }
-
-    public class CustomPair {
-        private int first;
-        private int second;
-    
-        public CustomPair(int firstValue, int secondValue) {
-            this.first = firstValue;
-            this.second = secondValue;
-        }
-    
-        public int getFirst() {
-            return this.first;
-        }
-    
-        public int getSecond() {
-            return this.second;
-        }
-    }
     
     public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue) {
         int exchangedQuantityValue = 0;
@@ -184,7 +165,7 @@ public class Security {
         return new CustomPair(exchangedQuantityValue, maxSellPrice);
     }
 
-    public int findOpeningPrice() {
+    public CustomPair findOpeningPrice() {
         int openingPrice = lastTradePrice;
         int maxExchangedQuantity = 0;
         int maxSellPrice = 0;
@@ -213,7 +194,7 @@ public class Security {
             openingPrice = maxSellPrice;
         }
 
-        return openingPrice;
+        return new CustomPair(openingPrice, maxExchangedQuantity);
     }
     
 }
