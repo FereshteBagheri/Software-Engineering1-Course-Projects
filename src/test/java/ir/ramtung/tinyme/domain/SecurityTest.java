@@ -370,8 +370,20 @@ class SecurityTest {
     @Test
     void find_opening_price_only_one_new_order(){
         security.setLastTradePrice(15750);
-        Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
-        security.getOrderBook().enqueue(new_order);
+        Order newOrder = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
+        security.getOrderBook().enqueue(newOrder);
+        CustomPair pair = security.findOpeningPrice();
+        int validOpeningPrice = 15810;
+        int validExchangedQuantity = 450;
+        assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
+        assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
+    }
+
+    @Test
+    void find_opening_price_only_one_new_iceberg_order(){
+        security.setLastTradePrice(15750);
+        Order newIcebergOrder = new IcebergOrder(11, security, Side.BUY, 450, 15900, broker1, shareholder, 50);
+        security.getOrderBook().enqueue(newIcebergOrder);
         CustomPair pair = security.findOpeningPrice();
         int validOpeningPrice = 15810;
         int validExchangedQuantity = 450;
