@@ -16,12 +16,6 @@ import java.util.stream.Collectors;
 public class Matcher {
     public MatchResult match(Order newOrder) { return MatchResult.executed(null, new LinkedList<>()); }
 
-    // private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){}
-
-    // private void rollbackSell(Order newOrder, LinkedList<Trade> trades) {}
-
-    // private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {}
-
     public MatchResult execute(Order order) { return MatchResult.executed(null, new LinkedList<>());}
 
     public void handleIcebergOrder(Order order) {
