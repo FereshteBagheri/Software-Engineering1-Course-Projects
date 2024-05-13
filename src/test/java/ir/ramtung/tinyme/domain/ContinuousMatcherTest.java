@@ -80,16 +80,16 @@ public class ContinuousMatcherTest {
     private void setUpStopOrderBook(){
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
-                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300),
-                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350),
-                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400),
-                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500),
-                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500),
-                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600),
-                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550),
-                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500),
-                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450),
-                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400)
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300, 10),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350, 11),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400, 12),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500, 13),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500, 14),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600, 15),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550, 16),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500, 17),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450, 18),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400, 19)
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
@@ -199,9 +199,9 @@ public class ContinuousMatcherTest {
         setUpStopOrderBook();
         long requestId = 1;
         continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350, requestId);
-        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(10,11));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(11,12));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
     }
 
@@ -210,15 +210,15 @@ public class ContinuousMatcherTest {
         setUpStopOrderBook();
         long requestId = 1;
         continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550, requestId);
-        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,16));
+        verify(eventPublisher).publish(new OrderActivatedEvent(15,16));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
-        verify(eventPublisher).publish(new OrderActivatedEvent(requestId,17));
+        verify(eventPublisher).publish(new OrderActivatedEvent(16,17));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 17)).isEqualTo(null);
     }
 
     @Test
     void new_stop_order_is_not_activated() {
-        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500);
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result).isEqualTo(MatchResult.notActivated(newOrder));
         assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 15)).isNotEqualTo(null);
@@ -227,7 +227,7 @@ public class ContinuousMatcherTest {
 
     @Test
     void new_stop_order_is_activated_and_not_matched(){
-        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000);
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(1000);
         assertThat(result.trades().size()).isEqualTo(0);
@@ -238,7 +238,7 @@ public class ContinuousMatcherTest {
 
     @Test
     void new_stop_order_is_activated_and_partially_matched(){
-        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000);
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
         assertThat(result.trades().size()).isEqualTo(1);
@@ -248,7 +248,7 @@ public class ContinuousMatcherTest {
 
     @Test
     void new_stop_order_is_activated_and_completely_matched(){
-        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000);
+        StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);
         assertThat(result.trades().size()).isEqualTo(1);

@@ -77,16 +77,16 @@ class SecurityTest {
         orders.forEach(order -> security.getOrderBook().enqueue(order));
 
         stopOrders = Arrays.asList(
-                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300),
-                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350),
-                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400),
-                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500),
-                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500),
-                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 14600),
-                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 14550),
-                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 14500),
-                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 14450),
-                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 14400)
+            new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300, 10),
+            new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350, 11),
+            new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400, 12),
+            new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500, 13),
+            new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500, 14),
+            new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600, 15),
+            new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550, 16),
+            new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500, 17),
+            new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450, 18),
+            new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400, 19)
         );
         stopOrders.forEach(stopOrder -> security.getStopOrderBook().enqueue(stopOrder));
     }
@@ -235,7 +235,7 @@ class SecurityTest {
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
         security.enqueueOrder(order);
-        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 20);
         security.enqueueOrder(stopLimitOrder);
 
         assertThat(security.getOrderBook().findByOrderId(Side.BUY, 21)).isNotEqualTo(null);
@@ -248,7 +248,7 @@ class SecurityTest {
     void remove_order_by_orderID(){
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
-        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 20);
         security.getStopOrderBook().enqueue(stopLimitOrder);
         security.getOrderBook().enqueue(order);
 

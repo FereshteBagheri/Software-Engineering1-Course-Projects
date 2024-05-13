@@ -21,16 +21,16 @@ class StopOrderBookTest {
         shareholder = Shareholder.builder().build();
         shareholder.incPosition(security, 100_000);
         orders = Arrays.asList(
-                new StopLimitOrder(1, security, Side.BUY, 304, 15700, broker, shareholder, 10),
-                new StopLimitOrder(2, security, Side.BUY, 43, 15500, broker, shareholder, 20),
-                new StopLimitOrder(3, security, Side.BUY, 445, 15450, broker, shareholder, 30),
-                new StopLimitOrder(4, security, Side.BUY, 526, 15450, broker, shareholder, 40),
-                new StopLimitOrder(5, security, Side.BUY, 1000, 15400, broker, shareholder, 50),
-                new StopLimitOrder(6, security, Side.SELL, 350, 15800, broker, shareholder, 10),
-                new StopLimitOrder(7, security, Side.SELL, 285, 15810, broker, shareholder, 20),
-                new StopLimitOrder(8, security, Side.SELL, 800, 15810, broker, shareholder, 30),
-                new StopLimitOrder(9, security, Side.SELL, 340, 15820, broker, shareholder, 40),
-                new StopLimitOrder(10, security, Side.SELL, 65, 15820, broker, shareholder, 50)
+                new StopLimitOrder(1, security, Side.BUY, 304, 15700, broker, shareholder, 10, 10),
+                new StopLimitOrder(2, security, Side.BUY, 43, 15500, broker, shareholder, 20, 11),
+                new StopLimitOrder(3, security, Side.BUY, 445, 15450, broker, shareholder, 30, 12),
+                new StopLimitOrder(4, security, Side.BUY, 526, 15450, broker, shareholder, 40, 13),
+                new StopLimitOrder(5, security, Side.BUY, 1000, 15400, broker, shareholder, 50, 14),
+                new StopLimitOrder(6, security, Side.SELL, 350, 15800, broker, shareholder, 10, 15),
+                new StopLimitOrder(7, security, Side.SELL, 285, 15810, broker, shareholder, 20, 16),
+                new StopLimitOrder(8, security, Side.SELL, 800, 15810, broker, shareholder, 30, 17),
+                new StopLimitOrder(9, security, Side.SELL, 340, 15820, broker, shareholder, 40, 18),
+                new StopLimitOrder(10, security, Side.SELL, 65, 15820, broker, shareholder, 50, 19)
         );
         orders.forEach(stopOrder -> security.getStopOrderBook().enqueue(stopOrder));
     }

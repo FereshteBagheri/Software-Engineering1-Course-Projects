@@ -88,16 +88,16 @@ public class StopLimitOrderTest {
 
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
-                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300),
-                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350),
-                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400),
-                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500),
-                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500),
-                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 14600),
-                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 14550),
-                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 14500),
-                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 14450),
-                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 14400)
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 10),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350, 11),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400, 12),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500, 13),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 14600, 15),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 14550, 16),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 14500, 17),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 14450, 18),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 14400, 19)
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
@@ -490,8 +490,8 @@ public class StopLimitOrderTest {
                 14550, 1, 1, 0, 0, 0));
 
         assertThat(orderBook.getBuyQueue().isEmpty()).isTrue();
-        verify(eventPublisher).publish(new OrderActivatedEvent(1, 16));
-        verify(eventPublisher).publish(new OrderActivatedEvent(1, 17));
+        verify(eventPublisher).publish(new OrderActivatedEvent(15, 16));
+        verify(eventPublisher).publish(new OrderActivatedEvent(16, 17));
    }
 
     @Test
@@ -604,7 +604,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
 
         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
@@ -632,7 +632,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
         assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
@@ -659,7 +659,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(2, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(7);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
