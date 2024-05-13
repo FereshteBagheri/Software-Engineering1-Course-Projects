@@ -45,8 +45,8 @@ public class Matcher {
 
             if (triggeredOrders.isEmpty())
                 return;
-
-            Order newOrder = triggeredOrders.removeFirst().active();
+            StopLimitOrder stopOrder = triggeredOrders.removeFirst();
+            Order newOrder = stopOrder.active();
             if (newOrder.getSide() == Side.BUY)
                 newOrder.getBroker().increaseCreditBy(newOrder.getValue()); 
 
@@ -55,7 +55,7 @@ public class Matcher {
             
             if (!matchResult.trades().isEmpty()) {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
-                eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+                eventPublisher.publish(new OrderExecutedEvent(stopOrder.getRequestId(), newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }
         }
     }

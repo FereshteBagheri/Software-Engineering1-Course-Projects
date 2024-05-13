@@ -13,30 +13,33 @@ import java.time.LocalDateTime;
 
 public class StopLimitOrder extends Order {
     int stopPrice;
-    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, int stopPrice, OrderStatus status) {
+    long requestId;
+    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, int stopPrice, OrderStatus status, long requestId) {
         super(orderId, security, side, quantity, price, broker, shareholder, entryTime, status);
         this.stopPrice = stopPrice;
+        this.requestId = requestId;
     }
 
-    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, int stopPrice) {
-        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.NEW);
+    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, int stopPrice, long requestId) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.NEW, requestId);
     }
 
-    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, int stopPrice) {
+    public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, int stopPrice, long requestId) {
         super(orderId, security, side, quantity, price, broker, shareholder);
         this.stopPrice = stopPrice;
+        this.requestId = requestId;
     }
 
 
     // we can ignore snapshot functions for this type of order
     @Override
     public Order snapshot() {
-        return new StopLimitOrder(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT);
+        return new StopLimitOrder(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT, requestId);
     }
 
     @Override
     public Order snapshotWithQuantity(int newQuantity) {
-        return new StopLimitOrder(orderId, security, side, newQuantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT) ;
+        return new StopLimitOrder(orderId, security, side, newQuantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.SNAPSHOT, requestId) ;
     }
 
     @Override
