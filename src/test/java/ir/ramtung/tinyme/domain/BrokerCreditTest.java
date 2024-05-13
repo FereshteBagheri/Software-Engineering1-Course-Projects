@@ -269,19 +269,20 @@ public class BrokerCreditTest {
     void broker_credit_in_auction_matcher_after_match(){
         security.setMatchingState(MatchingState.AUCTION);
         Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
-        security.getOrderBook().enqueue(new_order);
         auctionMatcher.execute(new_order);
+
         long creditBeforeMatchBroker1 = broker1.getCredit();
         long creditBeforeMatchBroker2 = broker2.getCredit();
-        
+
         CustomPair pair = security.findOpeningPrice();
+
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+
         auctionMatcher.match(openBuyOrders, openSellOrders, pair.getFirst());
         // openingPrice = 15810 -> 15900 - 15810 = 90
-        assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450);
-        // 15810 - 15800 = 10
-        assertThat(broker2.getCredit()).isEqualTo(creditBeforeMatchBroker2 + 10*350);
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450 + 15810 * 100);
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeMatchBroker2 + 15810 * 350);
         
     }
 
