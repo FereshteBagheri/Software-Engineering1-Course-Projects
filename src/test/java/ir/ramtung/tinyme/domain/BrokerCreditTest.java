@@ -2,9 +2,12 @@ package ir.ramtung.tinyme.domain;
 
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,8 @@ public class BrokerCreditTest {
     private List<Order> orders;
     @Autowired
     private ContinuousMatcher continuousMatcher;
+    @Autowired
+    private AuctionMatcher auctionMatcher;
 
 
     @BeforeEach
@@ -250,5 +255,27 @@ public class BrokerCreditTest {
         }
     }
 
+    @Test
+    void broker_credit_in_auction_matcher_excute_only(){
+        security.setMatchingState(MatchingState.AUCTION);
+        broker2.increaseCreditBy(350*15800);
+        Order new_order = new Order(11, security, Side.BUY, 356, 15805, broker2, shareholder);
+        auctionMatcher.execute(new_order);
+        assertThat(broker2.getCredit()).isEqualTo(100000 + 350*15800 - 6*15805);
+    }
+
+    @Test
+    void broker_credit_in_auction_matcher_after_match(){
+        security.setMatchingState(MatchingState.AUCTION);
+        long creditBeforeMatchBroker1 = broker1.getCredit();
+        long creditBeforeMatchBroker2 = broker2.getCredit();
+        Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
+        auctionMatcher.match(new_order);
+        // openingPrice = 15810 -> 15900 - 15810 = 90
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450);
+        // 15810 - 15800 = 10
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeMatchBroker2 + 10*350);
+        
+    }
 
 }
