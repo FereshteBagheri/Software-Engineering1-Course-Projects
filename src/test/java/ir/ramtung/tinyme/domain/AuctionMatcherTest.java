@@ -105,18 +105,13 @@ public class AuctionMatcherTest {
         orderBook.enqueue(new_order);
         security.setLastTradePrice(15750);
         CustomPair pair = security.findOpeningPrice();
-        // BuyOrder List -> 1, 2, 3
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
-        // SellOrder List -> 9, 10, 11
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
-        // Exchanged Quantity = 792
-        // Opening Price = 15800
+        // Exchanged Quantity = 450
+        // Opening Price = 15810
         int openingPrice = pair.getFirst();
-
         Order afterFirstTradeOrder16 = new Order(orderBook.findByOrderId(Side.BUY, 16).getOrderId(), orderBook.findByOrderId(Side.BUY, 16).getSecurity(), orderBook.findByOrderId(Side.BUY, 16).getSide(), 100, orderBook.findByOrderId(Side.BUY, 16).getPrice(), orderBook.findByOrderId(Side.BUY, 16).getBroker(), orderBook.findByOrderId(Side.BUY, 16).getShareholder(), orderBook.findByOrderId(Side.BUY, 16).getEntryTime());
-
         LinkedList<Trade> validTrades = new LinkedList<>();
-
         validTrades.add(new Trade(orderBook.findByOrderId(Side.BUY, 16).getSecurity(), openingPrice, 350, orderBook.findByOrderId(Side.BUY, 16), orderBook.findByOrderId(Side.SELL, 11)));
         validTrades.add(new Trade(afterFirstTradeOrder16.getSecurity(), openingPrice, 100, afterFirstTradeOrder16, orderBook.findByOrderId(Side.SELL, 12)));
         MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
@@ -124,6 +119,24 @@ public class AuctionMatcherTest {
         assertThat(matchResult).isEqualTo(validMatchResult);
     }
 
-
+    @Test
+    void check_matcher_for_one_iceberg_order(){
+        orderBook.removeByOrderId(Side.BUY, 1);
+        orderBook.removeByOrderId(Side.BUY, 2);
+        orderBook.removeByOrderId(Side.BUY, 3);
+        orderBook.removeByOrderId(Side.SELL, 9);
+        orderBook.removeByOrderId(Side.SELL, 10);
+        Order newIcebergOrder = new IcebergOrder(16, security, Side.BUY, 450, 15900, broker, shareholder, 50);
+        orderBook.enqueue(newIcebergOrder);
+        security.setLastTradePrice(15750);
+        CustomPair pair = security.findOpeningPrice();
+        LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
+        LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+        // Exchanged Quantity = 450
+        // Opening Price = 15810
+        int openingPrice = pair.getFirst();
+        MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
+        System.out.println(matchResult);
+    }
     
 }
