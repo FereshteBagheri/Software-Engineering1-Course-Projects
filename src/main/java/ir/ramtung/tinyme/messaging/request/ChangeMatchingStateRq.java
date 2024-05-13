@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChangeMatchingStateReq {
+public class ChangeMatchingStateRq {
     private long requestId;
     private String securityIsin;
     private MatchingState targetState;
