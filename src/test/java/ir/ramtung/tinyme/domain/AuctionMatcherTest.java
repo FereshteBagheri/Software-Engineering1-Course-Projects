@@ -65,7 +65,7 @@ public class AuctionMatcherTest {
     }
 
     @Test
-    void check_matcher(){
+    void check_matcher_for_list_of_orders(){
         CustomPair pair = security.findOpeningPrice();
         // BuyOrder List -> 1, 2, 3
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
@@ -93,6 +93,37 @@ public class AuctionMatcherTest {
         MatchResult validMatchResult = MatchResult.executed(null, validTrades);
         assertThat(matchResult).isEqualTo(validMatchResult);
     }
+
+    @Test
+    void check_matcher_for_one_order(){
+        orderBook.removeByOrderId(Side.BUY, 1);
+        orderBook.removeByOrderId(Side.BUY, 2);
+        orderBook.removeByOrderId(Side.BUY, 3);
+        orderBook.removeByOrderId(Side.SELL, 9);
+        orderBook.removeByOrderId(Side.SELL, 10);
+        Order new_order = new Order(16, security, Side.BUY, 450, 15900, broker, shareholder);
+        orderBook.enqueue(new_order);
+        security.setLastTradePrice(15750);
+        CustomPair pair = security.findOpeningPrice();
+        // BuyOrder List -> 1, 2, 3
+        LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
+        // SellOrder List -> 9, 10, 11
+        LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+        // Exchanged Quantity = 792
+        // Opening Price = 15800
+        int openingPrice = pair.getFirst();
+
+        Order afterFirstTradeOrder16 = new Order(orderBook.findByOrderId(Side.BUY, 16).getOrderId(), orderBook.findByOrderId(Side.BUY, 16).getSecurity(), orderBook.findByOrderId(Side.BUY, 16).getSide(), 100, orderBook.findByOrderId(Side.BUY, 16).getPrice(), orderBook.findByOrderId(Side.BUY, 16).getBroker(), orderBook.findByOrderId(Side.BUY, 16).getShareholder(), orderBook.findByOrderId(Side.BUY, 16).getEntryTime());
+
+        LinkedList<Trade> validTrades = new LinkedList<>();
+
+        validTrades.add(new Trade(orderBook.findByOrderId(Side.BUY, 16).getSecurity(), openingPrice, 350, orderBook.findByOrderId(Side.BUY, 16), orderBook.findByOrderId(Side.SELL, 11)));
+        validTrades.add(new Trade(afterFirstTradeOrder16.getSecurity(), openingPrice, 100, afterFirstTradeOrder16, orderBook.findByOrderId(Side.SELL, 12)));
+        MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
+        MatchResult validMatchResult = MatchResult.executed(null, validTrades);
+        assertThat(matchResult).isEqualTo(validMatchResult);
+    }
+
 
     
 }
