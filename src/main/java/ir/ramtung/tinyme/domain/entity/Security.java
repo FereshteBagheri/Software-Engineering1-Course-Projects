@@ -159,7 +159,7 @@ public class Security {
                     Math.abs(lastTradePrice - nearestSellPrice) > Math.abs(lastTradePrice - sellOrder.getPrice())) {
                     nearestSellPrice = sellOrder.getPrice();
                 }
-                exchangedQuantityValue += sellOrder.getQuantity();
+                exchangedQuantityValue += sellOrder.getTotalQuantity();
             } else {
                 break;
             }
@@ -177,7 +177,7 @@ public class Security {
         LinkedList<Order> buyQueue = orderBook.getBuyQueue();
         LinkedList<Order> sellQueue = orderBook.getSellQueue();
         for (Order buyOrder : buyQueue) {
-            exchangedQuantityValueSideBuy += buyOrder.getQuantity();
+            exchangedQuantityValueSideBuy += buyOrder.getTotalQuantity();
             CustomPair pair = exchangedQuantity(buyOrder.getPrice(), sellQueue, exchangedQuantityValueSideBuy);
             int exchangedQuantityValueSideSell = pair.getFirst();
             int exchangedQuantityValue = Math.min(exchangedQuantityValueSideSell, exchangedQuantityValueSideBuy);
