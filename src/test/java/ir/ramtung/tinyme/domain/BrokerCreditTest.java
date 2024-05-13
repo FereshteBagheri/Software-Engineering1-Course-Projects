@@ -17,6 +17,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -261,7 +262,7 @@ public class BrokerCreditTest {
         broker2.increaseCreditBy(350*15800);
         Order new_order = new Order(11, security, Side.BUY, 356, 15805, broker2, shareholder);
         auctionMatcher.execute(new_order);
-        assertThat(broker2.getCredit()).isEqualTo(100000 + 350*15800 - 6*15805);
+        assertThat(broker2.getCredit()).isEqualTo(100000 - 6*15805);
     }
 
     @Test
@@ -270,7 +271,12 @@ public class BrokerCreditTest {
         long creditBeforeMatchBroker1 = broker1.getCredit();
         long creditBeforeMatchBroker2 = broker2.getCredit();
         Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
-        auctionMatcher.match(new_order);
+        security.getOrderBook().enqueue(new_order);
+        CustomPair pair = security.findOpeningPrice();
+        LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
+        // SellOrder List -> 9, 10, 11
+        LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+        auctionMatcher.match(openBuyOrders, openSellOrders, pair.getFirst());
         // openingPrice = 15810 -> 15900 - 15810 = 90
         assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450);
         // 15810 - 15800 = 10
