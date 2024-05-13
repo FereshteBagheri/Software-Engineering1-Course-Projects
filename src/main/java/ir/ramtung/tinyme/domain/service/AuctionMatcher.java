@@ -4,6 +4,8 @@ import ir.ramtung.tinyme.domain.entity.*;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 @Service
 public class AuctionMatcher extends Matcher {
@@ -21,16 +23,21 @@ public class AuctionMatcher extends Matcher {
                 removeOrder(buyOrder);
                 removeOrder(sellOrder);
                 sellOrders.removeFirst();
+                buyOrders.removeFirst();
             } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
                 buyOrder.decreaseQuantity(trade.getQuantity());
-                sellOrder.getSecurity().removeOrderByOrderId(sellOrder, sellOrder.getSide(), sellOrder.getOrderId());
+                removeOrder(sellOrder);
                 sellOrders.removeFirst();
                 handleIcebergOrder(sellOrder);
+                if (sellOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
+                    enqueueOpenOrder(icebergOrder, sellOrders);
             } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
                 sellOrder.decreaseQuantity(trade.getQuantity());
-                buyOrder.getSecurity().removeOrderByOrderId(buyOrder, buyOrder.getSide(), buyOrder.getOrderId());
+                removeOrder(buyOrder);
                 buyOrders.removeFirst();
                 handleIcebergOrder(buyOrder);
+                if (buyOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
+                    enqueueOpenOrder(icebergOrder, buyOrders);
             }
 
             adjustCredit(buyOrder, trade, openingPrice);
@@ -48,6 +55,18 @@ public class AuctionMatcher extends Matcher {
     private void adjustCredit(Order buyOrder, Trade trade, int openingPrice) {
         buyOrder.getBroker().increaseCreditBy((buyOrder.getPrice() - openingPrice) * trade.getQuantity());
         trade.increaseSellersCredit();
+    }
+
+    private void enqueueOpenOrder(Order order, List<Order> openOrders) {
+        ListIterator<Order> it = openOrders.listIterator();
+        while (it.hasNext()) {
+            if (order.queuesBefore(it.next())) {
+                it.previous();
+                break;
+            }
+        }
+        order.queue();
+        it.add(order);
     }
 
     @Override
