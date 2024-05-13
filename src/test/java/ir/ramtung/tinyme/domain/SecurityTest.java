@@ -312,7 +312,7 @@ class SecurityTest {
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
         CustomPair pair = security.findOpeningPrice();
-        int validOpeningPrice = 15805;
+        int validOpeningPrice = 15804;
         int validExchangedQuantity = 792;
         assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
         assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
@@ -331,7 +331,7 @@ class SecurityTest {
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
         CustomPair pair = security.findOpeningPrice();
-        int validOpeningPrice = 15800;
+        int validOpeningPrice = 15803;
         int validExchangedQuantity = 792;
         assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
         assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);

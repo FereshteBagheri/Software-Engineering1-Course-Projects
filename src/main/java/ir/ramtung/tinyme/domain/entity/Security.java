@@ -169,7 +169,7 @@ public class Security {
     }
 
     public CustomPair findOpeningPrice() {
-        int openingPrice = lastTradePrice;
+        int openingPrice = 0;
         int maxExchangedQuantity = 0;
         int nearestSellPrice = 0;
         int exchangedQuantityValueSideBuy = 0;
@@ -193,8 +193,9 @@ public class Security {
                     nearestSellPrice = sellPrice;
             }
         }
-
-        if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - nearestSellPrice)) {
+        if (openingPrice >= lastTradePrice && lastTradePrice >= nearestSellPrice){
+            openingPrice = lastTradePrice;
+        }else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - nearestSellPrice)) {
             openingPrice = nearestSellPrice;
         }
 
