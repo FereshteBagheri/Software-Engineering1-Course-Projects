@@ -259,7 +259,7 @@ public class BrokerCreditTest {
     @Test
     void broker_credit_in_auction_matcher_excute_only(){
         security.setMatchingState(MatchingState.AUCTION);
-        broker2.increaseCreditBy(350*15800);
+        broker2.increaseCreditBy(350*15805);
         Order new_order = new Order(11, security, Side.BUY, 356, 15805, broker2, shareholder);
         auctionMatcher.execute(new_order);
         assertThat(broker2.getCredit()).isEqualTo(100000 - 6*15805);
