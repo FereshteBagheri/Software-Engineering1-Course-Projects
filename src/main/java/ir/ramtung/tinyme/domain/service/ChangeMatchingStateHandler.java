@@ -7,26 +7,28 @@ import ir.ramtung.tinyme.messaging.event.SecurirtyStateChangeRejectedEvent;
 import ir.ramtung.tinyme.messaging.event.SecurityStateChangedEvent;
 import ir.ramtung.tinyme.messaging.event.TradeEvent;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
-import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateReq;
+import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 
+@Service
 public class ChangeMatchingStateHandler extends ReqHandler {
 
-    public void handleChangeMatchingStateRq(ChangeMatchingStateReq changeMatchingStateReq) {
+    public void handleChangeMatchingStateRq(ChangeMatchingStateRq changeMatchingStateRq) {
         try {
-            validateSecurity(changeMatchingStateReq.getSecurityIsin());
-            Security security = securityRepository.findSecurityByIsin(changeMatchingStateReq.getSecurityIsin());
-            MatchingState target = changeMatchingStateReq.getTargetState();
+            validateSecurity(changeMatchingStateRq.getSecurityIsin());
+            Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
+            MatchingState target = changeMatchingStateRq.getTargetState();
             if (security.getState() == MatchingState.AUCTION)
-                openSecurity(security, changeMatchingStateReq.getRequestId());
+                openSecurity(security, changeMatchingStateRq.getRequestId());
 
             security.setMatchingState(target);
             eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
 
         } catch (InvalidRequestException ex) {
-            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(changeMatchingStateReq.getRequestId(),ex.getMessage()));
+            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(changeMatchingStateRq.getRequestId(),ex.getMessage()));
         }
     }
 
