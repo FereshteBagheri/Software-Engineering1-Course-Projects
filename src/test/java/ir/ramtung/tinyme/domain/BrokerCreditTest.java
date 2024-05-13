@@ -273,9 +273,14 @@ public class BrokerCreditTest {
         Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
         security.getOrderBook().enqueue(new_order);
         CustomPair pair = security.findOpeningPrice();
+        System.out.println(pair.getFirst());
+        System.out.println(pair.getSecond());
+        System.out.println("khar");
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
-        // SellOrder List -> 9, 10, 11
+        System.out.println(openBuyOrders);
+        System.out.println("gav");
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
+        System.out.println(openSellOrders);
         auctionMatcher.match(openBuyOrders, openSellOrders, pair.getFirst());
         // openingPrice = 15810 -> 15900 - 15810 = 90
         assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450);
