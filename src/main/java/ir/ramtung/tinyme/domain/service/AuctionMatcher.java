@@ -24,6 +24,12 @@ public class AuctionMatcher extends Matcher {
                 removeOrder(sellOrder);
                 sellOrders.removeFirst();
                 buyOrders.removeFirst();
+                handleIcebergOrder(buyOrder);
+                handleIcebergOrder(sellOrder);
+                if (sellOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
+                    enqueueOpenOrder(icebergOrder, sellOrders);
+                if (buyOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
+                    enqueueOpenOrder(icebergOrder, buyOrders);
             } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
                 buyOrder.decreaseQuantity(trade.getQuantity());
                 removeOrder(sellOrder);
