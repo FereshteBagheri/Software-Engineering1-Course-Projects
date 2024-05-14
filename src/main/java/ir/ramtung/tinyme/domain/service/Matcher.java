@@ -28,7 +28,7 @@ public class Matcher {
         }
     }
 
-    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice, long requestId){
+    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice){
         LinkedList<StopLimitOrder> triggeredOrders = new LinkedList<StopLimitOrder>();
         
         MatchResult matchResult;
@@ -49,7 +49,7 @@ public class Matcher {
             
             if (!matchResult.trades().isEmpty()) {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
-                eventPublisher.publish(new OrderExecutedEvent(requestId, newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+                eventPublisher.publish(new OrderExecutedEvent(stopOrder.getOrderId(), newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }
         }
     }
