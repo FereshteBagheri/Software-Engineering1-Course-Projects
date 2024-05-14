@@ -590,4 +590,15 @@ public class OrderHandlerTest {
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15000, 0));
     }
 
+    @Test
+    void openingPrice_is_published_when_new_order_enters_at_auction() {
+        security.setLastTradePrice(15000);
+        Order order = new Order(1, security, Side.BUY, 300, 12000, broker3, shareholder);
+        security.getOrderBook().enqueue(order);
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 11000, 2, shareholder.getShareholderId(), 0, 0, 0));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 12000, 0));
+    }
+
 }
