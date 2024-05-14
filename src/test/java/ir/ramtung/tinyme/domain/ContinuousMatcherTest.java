@@ -196,8 +196,7 @@ public class ContinuousMatcherTest {
     @Test
     void execute_triggered_stop_orders_works_when_increasing_last_price(){
         setUpStopOrderBook();
-        long requestId = 1;
-        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350, requestId);
+        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350);
         verify(eventPublisher).publish(new OrderActivatedEvent(10,11));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         verify(eventPublisher).publish(new OrderActivatedEvent(11,12));
@@ -207,8 +206,7 @@ public class ContinuousMatcherTest {
     @Test
     void execute_triggered_stop_orders_works_when_decreasing_last_price(){
         setUpStopOrderBook();
-        long requestId = 1;
-        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550, requestId);
+        continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550);
         verify(eventPublisher).publish(new OrderActivatedEvent(15,16));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
         verify(eventPublisher).publish(new OrderActivatedEvent(16,17));

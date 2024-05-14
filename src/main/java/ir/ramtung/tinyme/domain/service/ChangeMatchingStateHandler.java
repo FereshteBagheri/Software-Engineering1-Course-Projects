@@ -58,9 +58,9 @@ public class ChangeMatchingStateHandler extends ReqHandler {
         publishTradeEvents(matchResult);
         
         if (!matchResult.trades().isEmpty() && target == MatchingState.AUCTION)
-            auctionMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice, requestId);
+            auctionMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
         if (!matchResult.trades().isEmpty() && target == MatchingState.CONTINUOUS)
-            continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice, requestId);
+            continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
     }
 
     private void publishTradeEvents(MatchResult matchResult) {

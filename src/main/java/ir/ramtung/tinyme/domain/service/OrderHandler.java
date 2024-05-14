@@ -51,7 +51,7 @@ public class OrderHandler extends ReqHandler {
             publishEnterOrderReqEvents(matchResult, enterOrderRq);
             publishOpenPriceEvent(security);
             if (!matchResult.trades().isEmpty())
-                matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
+                matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice());
 
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
