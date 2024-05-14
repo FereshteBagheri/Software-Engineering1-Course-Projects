@@ -65,6 +65,8 @@ public class OrderHandler extends ReqHandler {
             Security security = securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin());
             security.deleteOrder(deleteOrderRq);
             eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
+            CustomPair pair = security.findOpeningPrice();
+            eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), pair.getFirst(), pair.getSecond()));
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId(), ex.getReasons()));
         }
