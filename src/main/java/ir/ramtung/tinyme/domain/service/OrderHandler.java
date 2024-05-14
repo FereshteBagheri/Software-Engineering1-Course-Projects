@@ -131,7 +131,7 @@ public class OrderHandler extends ReqHandler {
 
     private void validateAuctionStateRules(EnterOrderRq enterOrderRq, Security security) throws InvalidRequestException {
         if (security.getState() == MatchingState.AUCTION) {
-            if (enterOrderRq.getMinimumExecutionQuantity() > 0)
+            if (enterOrderRq.getMinimumExecutionQuantity() > 0 && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
             if (enterOrderRq.getStopPrice() != 0)
                 throw new InvalidRequestException(Message.STOP_PRICE_IN_AUCTION);

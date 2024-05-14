@@ -29,11 +29,11 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             validateSecurity(changeMatchingStateRq.getSecurityIsin());
             Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
             MatchingState target = changeMatchingStateRq.getTargetState();
+            eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
             if (security.getState() == MatchingState.AUCTION)
                 openSecurity(security, changeMatchingStateRq.getRequestId(), target);
 
             security.setMatchingState(target);
-            eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
 
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(changeMatchingStateRq.getRequestId(),ex.getMessage()));
