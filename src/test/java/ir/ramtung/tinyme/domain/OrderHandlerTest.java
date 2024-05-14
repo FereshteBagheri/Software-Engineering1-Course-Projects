@@ -601,4 +601,5 @@ public class OrderHandlerTest {
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 12000, 0));
     }
 
+
 }
