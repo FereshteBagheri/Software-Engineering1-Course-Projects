@@ -586,8 +586,9 @@ public class OrderHandlerTest {
         security.setLastTradePrice(15000);
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
         assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        broker2.increaseCreditBy(300*15450);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
-        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15000, 0));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 0, 0));
     }
 
     @Test

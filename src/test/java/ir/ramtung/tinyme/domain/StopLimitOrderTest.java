@@ -604,7 +604,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 12));
 
         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(50);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
@@ -632,7 +632,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 12));
         assertThat(orderBook.findByOrderId(Side.SELL, 6)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
@@ -659,7 +659,7 @@ public class StopLimitOrderTest {
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 11));
         verify(eventPublisher).publish(new OrderActivatedEvent(2, 11));
-        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 12));
         assertThat(orderBook.findByOrderId(Side.SELL, 6).getQuantity()).isEqualTo(7);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);

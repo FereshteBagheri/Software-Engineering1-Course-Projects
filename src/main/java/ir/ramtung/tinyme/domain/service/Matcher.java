@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-@Service
+
 public class Matcher {
     public MatchResult match(Order newOrder) { return MatchResult.executed(null, new LinkedList<>()); }
 
