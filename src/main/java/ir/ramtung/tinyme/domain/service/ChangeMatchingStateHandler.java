@@ -3,16 +3,13 @@ package ir.ramtung.tinyme.domain.service;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
-import ir.ramtung.tinyme.messaging.event.OpeningPriceEvent;
 import ir.ramtung.tinyme.messaging.event.SecurirtyStateChangeRejectedEvent;
 import ir.ramtung.tinyme.messaging.event.SecurityStateChangedEvent;
 import ir.ramtung.tinyme.messaging.event.TradeEvent;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
-import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
-import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -56,7 +53,7 @@ public class ChangeMatchingStateHandler extends ReqHandler {
         LinkedList<Order> openSellOrders = security.findOpenOrders(openingPrice, Side.SELL);
         MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
         publishTradeEvents(matchResult);
-        
+
         if (!matchResult.trades().isEmpty() && target == MatchingState.AUCTION)
             auctionMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
         if (!matchResult.trades().isEmpty() && target == MatchingState.CONTINUOUS)
