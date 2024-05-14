@@ -76,9 +76,17 @@ public class AuctionMatcher extends Matcher {
     }
 
     @Override
-    public MatchResult execute(Order order) {  
+    public MatchResult execute(Order order) {
+        if (order instanceof StopLimitOrder stopLimitOrder &&
+                stopLimitOrder.isTriggered(order.getSecurity().getLastTradePrice()))
+            order = stopLimitOrder.active();
+
+        if (order.getSide() == Side.BUY && !order.getBroker().hasEnoughCredit(order.getValue()))
+            return MatchResult.notEnoughCredit();
+
         if (order.getSide() == Side.BUY)
             order.getBroker().decreaseCreditBy(order.getValue());
+
         order.getSecurity().enqueueOrder(order);
 
         return MatchResult.executed(order, new LinkedList<>());
