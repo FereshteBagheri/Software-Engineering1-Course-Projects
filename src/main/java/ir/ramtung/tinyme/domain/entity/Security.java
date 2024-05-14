@@ -198,7 +198,8 @@ public class Security {
         }else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxFulfilledSellPriceByBuy)) {
             openingPrice = maxFulfilledSellPriceByBuy;
         }
-
+        if (tradeableQuantity == 0)
+            openingPrice = 0;
         return new CustomPair(openingPrice, tradeableQuantity);
     }
     
