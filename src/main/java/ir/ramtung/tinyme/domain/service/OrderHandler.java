@@ -49,8 +49,7 @@ public class OrderHandler extends ReqHandler {
                 matchResult = security.updateOrder(enterOrderRq, matcher);
 
             publishEnterOrderReqEvents(matchResult, enterOrderRq);
-            CustomPair pair = security.findOpeningPrice();
-            eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), pair.getFirst(), pair.getSecond()));
+            publishOpenPriceEvent(security);
             if (!matchResult.trades().isEmpty())
                 matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice(),enterOrderRq.getRequestId());
 
@@ -65,8 +64,7 @@ public class OrderHandler extends ReqHandler {
             Security security = securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin());
             security.deleteOrder(deleteOrderRq);
             eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
-            CustomPair pair = security.findOpeningPrice();
-            eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), pair.getFirst(), pair.getSecond()));
+            publishOpenPriceEvent(security);
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId(), ex.getReasons()));
         }
@@ -170,4 +168,10 @@ public class OrderHandler extends ReqHandler {
             eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
     }
 
+    void publishOpenPriceEvent(Security security) {
+        if (security.getState() == MatchingState.CONTINUOUS)
+            return;
+        CustomPair pair = security.findOpeningPrice();
+        eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), pair.getFirst(), pair.getSecond()));
+    }
 }
