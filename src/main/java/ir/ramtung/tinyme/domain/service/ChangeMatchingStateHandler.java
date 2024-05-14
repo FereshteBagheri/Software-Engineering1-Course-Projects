@@ -1,6 +1,7 @@
 package ir.ramtung.tinyme.domain.service;
 
 import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.OpeningPriceEvent;
 import ir.ramtung.tinyme.messaging.event.SecurirtyStateChangeRejectedEvent;
@@ -9,12 +10,22 @@ import ir.ramtung.tinyme.messaging.event.TradeEvent;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
+import ir.ramtung.tinyme.repository.BrokerRepository;
+import ir.ramtung.tinyme.repository.SecurityRepository;
+import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
 
 @Service
 public class ChangeMatchingStateHandler extends ReqHandler {
+    public ChangeMatchingStateHandler(SecurityRepository securityRepository, EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher) {
+        this.securityRepository = securityRepository;
+        this.eventPublisher = eventPublisher;
+        this.continuousMatcher = continuousMatcher;
+        this.auctionMatcher = auctionMatcher;
+    }
+
 
     public void handleChangeMatchingStateRq(ChangeMatchingStateRq changeMatchingStateRq) {
         try {

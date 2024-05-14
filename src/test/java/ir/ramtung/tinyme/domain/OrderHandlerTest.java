@@ -3,14 +3,17 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
+import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
 import ir.ramtung.tinyme.domain.service.ContinuousMatcher;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.TradeDTO;
 import ir.ramtung.tinyme.messaging.event.*;
+import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
@@ -35,6 +38,10 @@ import static org.mockito.Mockito.*;
 public class OrderHandlerTest {
     @Autowired
     OrderHandler orderHandler;
+
+    @Autowired
+    ChangeMatchingStateHandler stateHandler;
+
     @Autowired
     EventPublisher eventPublisher;
     @Autowired
@@ -563,6 +570,24 @@ public class OrderHandlerTest {
         verify(eventPublisher).publish(any(OrderAcceptedEvent.class));
         assertThat(shareholder1.hasEnoughPositionsOn(security, 100_000)).isTrue();
         assertThat(shareholder.hasEnoughPositionsOn(security, 500)).isTrue();
+    }
+
+    @Test
+    void openingPrice_is_published_when_new_order_enters_at_auction_empty_buy_queue() {
+        security.setLastTradePrice(15000);
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15000, 0));
+    }
+
+    @Test
+    void openingPrice_is_published_when_new_order_enters_at_auction_empty_sell_queue() {
+        security.setLastTradePrice(15000);
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15000, 0));
     }
 
 }

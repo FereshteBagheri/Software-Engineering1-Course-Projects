@@ -149,7 +149,7 @@ public class Security {
         this.state = targetState;
     }
     
-    public CustomPair exchangedQuantity(int buyPrice, LinkedList<Order> sellQueue, int needToBeCoveredQuantity) {
+    public CustomPair TradeableQuantityBuyPrice(int buyPrice, LinkedList<Order> sellQueue, int needToBeCoveredQuantity) {
         int exchangedQuantityValue = 0;
         int nearestSellPrice = -1000000;
 
@@ -178,7 +178,7 @@ public class Security {
         LinkedList<Order> sellQueue = orderBook.getSellQueue();
         for (Order buyOrder : buyQueue) {
             exchangedQuantityValueSideBuy += buyOrder.getTotalQuantity();
-            CustomPair pair = exchangedQuantity(buyOrder.getPrice(), sellQueue, exchangedQuantityValueSideBuy);
+            CustomPair pair = TradeableQuantityBuyPrice(buyOrder.getPrice(), sellQueue, exchangedQuantityValueSideBuy);
             int exchangedQuantityValueSideSell = pair.getFirst();
             int exchangedQuantityValue = Math.min(exchangedQuantityValueSideSell, exchangedQuantityValueSideBuy);
             int sellPrice = pair.getSecond();
