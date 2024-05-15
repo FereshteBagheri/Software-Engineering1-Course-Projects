@@ -56,6 +56,8 @@ public class Security {
             order = stopOrderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
         if (order == null)
             throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
+        if (order instanceof StopLimitOrder && state == MatchingState.AUCTION)
+            throw new InvalidRequestException(Message.DELETE_STOP_ORDER_NOT_ALLOWED_IN_AUCTION);
         if (order.getSide() == Side.BUY)
             order.getBroker().increaseCreditBy(order.getValue()); 
         removeOrderByOrderId(order, deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
