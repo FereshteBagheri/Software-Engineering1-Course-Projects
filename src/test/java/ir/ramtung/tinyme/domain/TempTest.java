@@ -3,9 +3,7 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.entity.Order;
-import ir.ramtung.tinyme.domain.service.AuctionMatcher;
-import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
-import ir.ramtung.tinyme.domain.service.OrderHandler;
+import ir.ramtung.tinyme.domain.service.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.OpeningPriceEvent;
@@ -106,6 +104,13 @@ public class TempTest {
     @Autowired
     ChangeMatchingStateHandler stateHandler;
 
+    @Autowired
+    private ContinuousMatcher continuousMatcher;
+
+    @Autowired
+    private AuctionMatcher auctionMatcher;
+
+
     @BeforeEach
     void setup() {
         securityRepository.clear();
@@ -147,16 +152,16 @@ public class TempTest {
 
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
-                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 10),
-                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker1, shareholder, 16350, 11),
-                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker1, shareholder, 16400, 12),
-                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker1, shareholder, 16500, 13),
-                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
-                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker2, shareholder, 14600, 15),
-                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker1, shareholder, 14550, 16),
-                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker2, shareholder, 14500, 17),
-                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker2, shareholder, 14450, 18),
-                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker2, shareholder, 14400, 19)
+                new StopLimitOrder(16, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 10),
+                new StopLimitOrder(17, security, Side.BUY, 43, 15500, broker1, shareholder, 16350, 11),
+                new StopLimitOrder(18, security, Side.BUY, 445, 15450, broker1, shareholder, 16400, 12),
+                new StopLimitOrder(19, security, Side.BUY, 526, 15450, broker1, shareholder, 16500, 13),
+                new StopLimitOrder(20, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
+                new StopLimitOrder(21, security, Side.SELL, 350, 15800, broker2, shareholder, 14600, 15),
+                new StopLimitOrder(22, security, Side.SELL, 285, 15810, broker1, shareholder, 14550, 16),
+                new StopLimitOrder(23, security, Side.SELL, 800, 15810, broker2, shareholder, 14500, 17),
+                new StopLimitOrder(24, security, Side.SELL, 340, 15820, broker2, shareholder, 14450, 18),
+                new StopLimitOrder(25, security, Side.SELL, 65, 15820, broker2, shareholder, 14400, 19)
         );
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
@@ -170,7 +175,7 @@ public class TempTest {
 
     @Test
     void publish_change_state_from_auction_to_continuous(){
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        security.setMatchingState(MatchingState.AUCTION);
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
         assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
@@ -184,7 +189,6 @@ public class TempTest {
     }
 
     @Test
-    @Disabled
     void publish_change_state_from_auction_to_auction(){
         security.setMatchingState(MatchingState.AUCTION);
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
@@ -197,18 +201,20 @@ public class TempTest {
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15820, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 200));
     }
 
     @Test
     void openingPrice_is_published_when_new_buy_order_enters() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 810));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 200));
     }
 
     @Test
     void new_order_with_minimum_execution_quantity_is_rejected_at_auction() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 10, 0));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -221,7 +227,7 @@ public class TempTest {
 
     @Test
     void new_stop_limit_order_is_rejected_at_auction() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 14000));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -230,6 +236,15 @@ public class TempTest {
         assertThat(outputEvent.getOrderId()).isEqualTo(200);
         assertThat(outputEvent.getErrors()).containsOnly(
                 Message.STOP_PRICE_IN_AUCTION);
+    }
+
+    @Test
+    void enter_new_order_works_correctly_at_auction(){
+        security.setMatchingState(MatchingState.AUCTION);
+        Order order = new Order(26, security, Side.BUY, 100, 15600, broker1, shareholder);
+        MatchResult result = auctionMatcher.execute(order);
+        assertThat(result.remainder().getQuantity()).isEqualTo(100);
+        assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
     }
 
 
