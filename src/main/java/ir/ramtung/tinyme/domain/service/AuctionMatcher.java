@@ -27,12 +27,10 @@ public class AuctionMatcher extends Matcher {
             } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
                 buyOrder.decreaseQuantity(trade.getQuantity());
                 removeOrder(sellOrder, sellOrders);
-                sellOrders.removeFirst();
                 handleOrder(sellOrder, sellOrders);
             } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
                 sellOrder.decreaseQuantity(trade.getQuantity());
                 removeOrder(buyOrder, buyOrders);
-                buyOrders.removeFirst();
                 handleOrder(buyOrder, buyOrders);
             }
 
@@ -79,6 +77,9 @@ public class AuctionMatcher extends Matcher {
             order.getBroker().decreaseCreditBy(order.getValue());
 
         order.getSecurity().enqueueOrder(order);
+        
+        if (order instanceof StopLimitOrder stopLimitOrder)
+            return MatchResult.notActivated(stopLimitOrder);
 
         return MatchResult.executed(order, new LinkedList<>());
     }
