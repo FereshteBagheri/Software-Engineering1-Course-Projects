@@ -20,30 +20,20 @@ public class AuctionMatcher extends Matcher {
             Trade trade = new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
 
             if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
-                removeOrder(buyOrder);
-                removeOrder(sellOrder);
-                sellOrders.removeFirst();
-                buyOrders.removeFirst();
-                handleIcebergOrder(buyOrder);
-                handleIcebergOrder(sellOrder);
-                if (sellOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
-                    enqueueOpenOrder(icebergOrder, sellOrders);
-                if (buyOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
-                    enqueueOpenOrder(icebergOrder, buyOrders);
+                removeOrder(buyOrder, buyOrders);
+                removeOrder(sellOrder, sellOrders);
+                handleOrder(buyOrder, buyOrders);
+                handleOrder(sellOrder, sellOrders);
             } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
                 buyOrder.decreaseQuantity(trade.getQuantity());
-                removeOrder(sellOrder);
+                removeOrder(sellOrder, sellOrders);
                 sellOrders.removeFirst();
-                handleIcebergOrder(sellOrder);
-                if (sellOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
-                    enqueueOpenOrder(icebergOrder, sellOrders);
+                handleOrder(sellOrder, sellOrders);
             } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
                 sellOrder.decreaseQuantity(trade.getQuantity());
-                removeOrder(buyOrder);
+                removeOrder(buyOrder, buyOrders);
                 buyOrders.removeFirst();
-                handleIcebergOrder(buyOrder);
-                if (buyOrder instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
-                    enqueueOpenOrder(icebergOrder, buyOrders);
+                handleOrder(buyOrder, buyOrders);
             }
 
             adjustCredit(buyOrder, trade, openingPrice);
@@ -54,7 +44,8 @@ public class AuctionMatcher extends Matcher {
         return MatchResult.executed(null, trades);
     }
 
-    private void removeOrder(Order order) {
+    private void removeOrder(Order order, LinkedList<Order> orders) {
+        orders.removeFirst();
         order.getSecurity().removeOrderByOrderId(order, order.getSide(), order.getOrderId());
     }
 
@@ -90,5 +81,11 @@ public class AuctionMatcher extends Matcher {
         order.getSecurity().enqueueOrder(order);
 
         return MatchResult.executed(order, new LinkedList<>());
+    }
+
+    private void handleOrder(Order order, LinkedList<Order> orders) {
+        handleIcebergOrder(order);
+        if (order instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
+            enqueueOpenOrder(icebergOrder, orders);
     }
 }
