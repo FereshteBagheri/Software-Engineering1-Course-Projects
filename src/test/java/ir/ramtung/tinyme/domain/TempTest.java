@@ -2,19 +2,21 @@ package ir.ramtung.tinyme.domain;
 
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.domain.entity.Order;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.OpeningPriceEvent;
+import ir.ramtung.tinyme.messaging.event.OrderRejectedEvent;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -44,10 +46,41 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.messaging.Message;
+import ir.ramtung.tinyme.messaging.event.*;
+import ir.ramtung.tinyme.config.MockedJMSTestConfig;
+import ir.ramtung.tinyme.domain.service.OrderHandler;
+import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.repository.BrokerRepository;
+import ir.ramtung.tinyme.repository.SecurityRepository;
+import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.repository.ShareholderRepository;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+
+import java.time.LocalDateTime;
+
+import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Import(MockedJMSTestConfig.class)
+@DirtiesContext
 public class TempTest {
     private Security security;
     private Broker broker1;
@@ -102,7 +135,6 @@ public class TempTest {
                 new Order(8, security, Side.BUY, 1000, 15400, broker1, shareholder),
 
 
-
                 new Order(9, security, Side.SELL, 285, 15430, broker2, shareholder),
                 new Order(10, security, Side.SELL, 350, 15600, broker1, shareholder),
                 new Order(11, security, Side.SELL, 350, 15800, broker2, shareholder),
@@ -129,11 +161,40 @@ public class TempTest {
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
 
+    @Test
+    void publish_change_state_from_continuous_to_auction(){
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
+    }
+
+    @Test
+    void publish_change_state_from_auction_to_continuous(){
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
+        assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
+    }
+
+    @Test
+    void publish_change_state_from_continuous_to_continuous(){
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
+        assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
+    }
+
+    @Test
+    @Disabled
+    void publish_change_state_from_auction_to_auction(){
+        security.setMatchingState(MatchingState.AUCTION);
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
+    }
 
     @Test
     void openingPrice_is_published_when_new_sell_order_enters() {
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
-        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15820, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
     }
@@ -141,10 +202,37 @@ public class TempTest {
     @Test
     void openingPrice_is_published_when_new_buy_order_enters() {
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
-        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 810));
     }
+
+    @Test
+    void new_order_with_minimum_execution_quantity_is_rejected_at_auction() {
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 10, 0));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(200);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
+    }
+
+    @Test
+    void new_stop_limit_order_is_rejected_at_auction() {
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 14000));
+
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(200);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.STOP_PRICE_IN_AUCTION);
+    }
+
+
 //
 //    @Test
 //    void openingPrice_is_published_when_new_order_enters_at_auction_empty_sell_queue() {
