@@ -49,10 +49,10 @@ public class OrderHandler extends ReqHandler {
                 matchResult = security.updateOrder(enterOrderRq, matcher);
 
             publishEnterOrderReqEvents(matchResult, enterOrderRq);
-            publishOpenPriceEvent(security);
             if (!matchResult.trades().isEmpty())
                 matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice());
 
+            publishOpenPriceEvent(security);
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
         }
@@ -64,6 +64,7 @@ public class OrderHandler extends ReqHandler {
             Security security = securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin());
             security.deleteOrder(deleteOrderRq);
             eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
+            publishOpenPriceEvent(security);
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId(), ex.getReasons()));
         }
@@ -133,7 +134,7 @@ public class OrderHandler extends ReqHandler {
         if (security.getState() == MatchingState.AUCTION) {
             if (enterOrderRq.getMinimumExecutionQuantity() > 0 && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
-            if (enterOrderRq.getStopPrice() != 0)
+            if (enterOrderRq.getStopPrice() != 0 && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.STOP_PRICE_IN_AUCTION);
         }
     }

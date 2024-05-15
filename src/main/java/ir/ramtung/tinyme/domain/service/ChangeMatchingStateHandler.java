@@ -29,11 +29,16 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             validateSecurity(changeMatchingStateRq.getSecurityIsin());
             Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
             MatchingState target = changeMatchingStateRq.getTargetState();
-            eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
+            MatchResult result = null;
+
             if (security.getState() == MatchingState.AUCTION)
-                openSecurity(security, changeMatchingStateRq.getRequestId(), target);
+                result = openSecurity(security);
 
             security.setMatchingState(target);
+            eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
+
+            if (result != null && !result.trades().isEmpty())
+                activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
 
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(changeMatchingStateRq.getRequestId(),ex.getMessage()));
@@ -46,18 +51,14 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             throw new InvalidRequestException(Message.UNKNOWN_SECURITY_ISIN);
     }
 
-    private void openSecurity(Security security, long requestId, MatchingState target) {
+    private MatchResult openSecurity(Security security) {
         CustomPair pair = security.findOpeningPrice();
         int openingPrice = pair.getFirst();
         LinkedList<Order> openBuyOrders = security.findOpenOrders(openingPrice, Side.BUY);
         LinkedList<Order> openSellOrders = security.findOpenOrders(openingPrice, Side.SELL);
         MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
         publishTradeEvents(matchResult);
-
-        if (!matchResult.trades().isEmpty() && target == MatchingState.AUCTION)
-            auctionMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
-        if (!matchResult.trades().isEmpty() && target == MatchingState.CONTINUOUS)
-            continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
+        return matchResult;
     }
 
     private void publishTradeEvents(MatchResult matchResult) {
@@ -67,5 +68,12 @@ public class ChangeMatchingStateHandler extends ReqHandler {
         for (Trade trade : matchResult.trades())
             eventPublisher.publish(new TradeEvent(trade.getSecurity().getIsin(), trade.getPrice(), trade.getQuantity(),
                     trade.getBuy().getOrderId(), trade.getSell().getOrderId()));
+    }
+
+    public void activeStopLimitOrders(MatchingState state, Security security, int openingPrice) {
+        if (state == MatchingState.AUCTION)
+            auctionMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
+        if (state == MatchingState.CONTINUOUS)
+            continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
     }
 }
