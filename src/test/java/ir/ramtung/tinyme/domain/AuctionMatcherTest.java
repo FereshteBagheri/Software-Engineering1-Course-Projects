@@ -3,6 +3,7 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
+import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ public class AuctionMatcherTest {
     private List<Order> orders;
     @Autowired
     private AuctionMatcher auctionMatcher;
+    @Autowired
+    ChangeMatchingStateHandler stateHandler;
 
     @BeforeEach
     void setupOrderBook() {
