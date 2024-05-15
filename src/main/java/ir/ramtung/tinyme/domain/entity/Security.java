@@ -150,22 +150,22 @@ public class Security {
     }
     
     public CustomPair TradeableQuantityBuyPrice(int buyPrice, LinkedList<Order> sellQueue, int maxTradeableQuantityBuyPrice) {
-        int exchangedQuantityValue = 0;
+        int maxFulfilledSellQuantityByBuyPrice = 0;
         int nearestSellPrice = -1000000;
 
         for (Order sellOrder : sellQueue) {
             if (sellOrder.getPrice() <= buyPrice) {
-                if (exchangedQuantityValue < maxTradeableQuantityBuyPrice ||
+                if (maxFulfilledSellQuantityByBuyPrice < maxTradeableQuantityBuyPrice ||
                     Math.abs(lastTradePrice - nearestSellPrice) > Math.abs(lastTradePrice - sellOrder.getPrice())) {
                     nearestSellPrice = sellOrder.getPrice();
                 }
-                exchangedQuantityValue += sellOrder.getTotalQuantity();
+                maxFulfilledSellQuantityByBuyPrice += sellOrder.getTotalQuantity();
             } else {
                 break;
             }
         }
 
-        return new CustomPair(exchangedQuantityValue, nearestSellPrice);
+        return new CustomPair(maxFulfilledSellQuantityByBuyPrice, nearestSellPrice);
     }
 
     public CustomPair findOpeningPrice() {
