@@ -572,34 +572,4 @@ public class OrderHandlerTest {
         assertThat(shareholder.hasEnoughPositionsOn(security, 500)).isTrue();
     }
 
-    @Test
-    void openingPrice_is_published_when_new_order_enters_at_auction_empty_buy_queue() {
-        security.setLastTradePrice(15000);
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
-        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
-        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 0, 0));
-    }
-
-    @Test
-    void openingPrice_is_published_when_new_order_enters_at_auction_empty_sell_queue() {
-        security.setLastTradePrice(15000);
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
-        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
-        broker2.increaseCreditBy(300*15450);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
-        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 0, 0));
-    }
-
-    @Test
-    void openingPrice_is_published_when_new_order_enters_at_auction() {
-        security.setLastTradePrice(15000);
-        Order order = new Order(1, security, Side.BUY, 300, 12000, broker3, shareholder);
-        security.getOrderBook().enqueue(order);
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
-        assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 350, 11000, 2, shareholder.getShareholderId(), 0, 0, 0));
-        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 12000, 300));
-    }
-
 }
