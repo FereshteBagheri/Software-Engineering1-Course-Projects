@@ -132,7 +132,7 @@ public class TempTest {
 
     @Test
     void publish_change_state_from_continuous_to_auction(){
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
     }
@@ -140,14 +140,14 @@ public class TempTest {
     @Test
     void publish_change_state_from_auction_to_continuous(){
         security.setMatchingState(MatchingState.AUCTION);
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
     }
 
     @Test
     void publish_change_state_from_continuous_to_continuous(){
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
     }
@@ -155,14 +155,14 @@ public class TempTest {
     @Test
     void publish_change_state_from_auction_to_auction(){
         security.setMatchingState(MatchingState.AUCTION);
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
     }
 
     @Test
     void openingPrice_is_published_when_new_sell_order_enters() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15820, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 200));
@@ -170,7 +170,7 @@ public class TempTest {
 
     @Test
     void openingPrice_is_published_when_sell_order_is_updated() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 9, LocalDateTime.now(), Side.SELL, 50, 15400, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify (eventPublisher). publish(new OrderUpdatedEvent(1, 9));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 750));
@@ -178,7 +178,7 @@ public class TempTest {
 
     @Test
     void openingPrice_is_published_when_sell_order_is_deleted() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 9));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 9));
         assertThat(orderBook.findByOrderId(Side.SELL, 9)).isEqualTo(null);
@@ -196,7 +196,7 @@ public class TempTest {
 
     @Test
     void openingPrice_is_published_when_buy_order_is_updated() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 433, 16000, 1, shareholder.getShareholderId(), 0, 0, 0));
         verify (eventPublisher). publish(new OrderUpdatedEvent(1, 1));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 780));
@@ -204,7 +204,7 @@ public class TempTest {
 
     @Test
     void openingPrice_is_published_when_buy_order_is_deleted() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 3));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 3));
         assertThat(orderBook.findByOrderId(Side.BUY, 3)).isEqualTo(null);
@@ -340,19 +340,23 @@ public class TempTest {
 
     @Test
     void activated_stop_orders_are_added_to_order_book_after_auction_and_not_matched(){
-
+        StopLimitOrder stopOrder =  new StopLimitOrder(27, security, Side.SELL, 400, 15100, broker2, shareholder, 16000, 2);
+        stopOrderBook.enqueue(stopOrder);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.SELL, 300, 15100, 2, shareholder.getShareholderId(), 0, 0, 16000));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isNotEqualTo(null);
 
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(3, "ABC", MatchingState.AUCTION));
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(4, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
 
         verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
         verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
 
-//        assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
+        assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isEqualTo(null);
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(300);
+        assertThat(orderBook.findByOrderId(Side.SELL, 27).getQuantity()).isEqualTo(400);
 
     }
 }

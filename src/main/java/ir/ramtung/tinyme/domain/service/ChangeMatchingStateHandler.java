@@ -41,7 +41,7 @@ public class ChangeMatchingStateHandler extends ReqHandler {
                 activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
 
         } catch (InvalidRequestException ex) {
-            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(changeMatchingStateRq.getRequestId(),ex.getMessage()));
+            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
         }
     }
 

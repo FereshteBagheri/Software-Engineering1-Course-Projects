@@ -11,6 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SecurirtyStateChangeRejectedEvent extends Event{
-    private long requestId;
     private String error;
 }
