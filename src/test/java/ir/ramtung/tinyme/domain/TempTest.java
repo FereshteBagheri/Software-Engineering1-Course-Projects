@@ -212,7 +212,7 @@ public class TempTest {
     }
 
     @Test
-    void new_order_with_minimum_execution_quantity_is_rejected_at_auction() {
+    void new_order_with_minimum_execution_quantity_is_rejected_in_auction() {
         security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 10, 0));
 
@@ -225,7 +225,7 @@ public class TempTest {
     }
 
     @Test
-    void order_with_MEQ_in_order_book_is_updated_at_auction(){
+    void order_with_MEQ_in_order_book_is_updated_in_auction(){
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 10, 0));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
@@ -237,7 +237,7 @@ public class TempTest {
 
 
     @Test
-    void order_with_MEQ_in_order_book_is_deleted_at_auction(){
+    void order_with_MEQ_in_order_book_is_deleted_in_auction(){
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 10, 0));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
@@ -248,7 +248,7 @@ public class TempTest {
     }
 
     @Test
-    void activated_stop_limit_order_is_updated_at_auction(){
+    void activated_stop_limit_order_is_updated_in_auction(){
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 0, 1400));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
@@ -259,7 +259,7 @@ public class TempTest {
     }
 
     @Test
-    void activated_stop_limit_order_is_deleted_at_auction(){
+    void activated_stop_limit_order_is_deleted_in_auction(){
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 0, 1400));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
@@ -270,7 +270,7 @@ public class TempTest {
     }
 
     @Test
-    void new_stop_limit_order_is_rejected_at_auction() {
+    void new_stop_limit_order_is_rejected_in_auction() {
         security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 14000));
 
@@ -283,7 +283,7 @@ public class TempTest {
     }
 
     @Test
-    void delete_stop_limit_order_is_rejected_at_auction() {
+    void delete_stop_limit_order_is_rejected_in_auction() {
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 200, 15920, 1, shareholder.getShareholderId(), 0, 0, 16000));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(200);
@@ -299,7 +299,7 @@ public class TempTest {
     }
 
     @Test
-    void update_not_activated_stop_limit_order_is_rejected_at_auction() {
+    void update_not_activated_stop_limit_order_is_rejected_in_auction() {
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 200, 15920, 1, shareholder.getShareholderId(), 0, 0, 16000));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(200);
@@ -314,11 +314,22 @@ public class TempTest {
     }
 
     @Test
-    void enter_new_order_works_correctly_at_auction(){
+    void enter_new_order_works_correctly_in_auction(){
         security.setMatchingState(MatchingState.AUCTION);
         Order order = new Order(26, security, Side.BUY, 100, 15600, broker1, shareholder);
         MatchResult result = auctionMatcher.execute(order);
         assertThat(result.remainder().getQuantity()).isEqualTo(100);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
+    }
+    @Test
+    void new_order_without_enough_credit_is_rejected_in_auction(){
+        security.setMatchingState(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 180000, 16000, 2, shareholder.getShareholderId(), 0, 0, 0));
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(26);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.BUYER_HAS_NOT_ENOUGH_CREDIT);
     }
 }
