@@ -93,18 +93,12 @@ public class TempTest {
 
         orderBook = security.getOrderBook();
         regularOrders = Arrays.asList(
-                new Order(1, security, Side.BUY, 445, 16000, broker1, shareholder),
-                new Order(2, security, Side.BUY, 43, 15900, broker1, shareholder),
-                new Order(3, security, Side.BUY, 304, 15800, broker1, shareholder),
                 new Order(4, security, Side.BUY, 304, 15700, broker1, shareholder),
                 new Order(5, security, Side.BUY, 43, 15500, broker1, shareholder),
                 new Order(6, security, Side.BUY, 445, 15450, broker1, shareholder),
                 new Order(7, security, Side.BUY, 526, 15450, broker1, shareholder),
                 new Order(8, security, Side.BUY, 1000, 15400, broker1, shareholder),
 
-
-                new Order(9, security, Side.SELL, 285, 15430, broker2, shareholder),
-                new Order(10, security, Side.SELL, 350, 15600, broker1, shareholder),
                 new Order(11, security, Side.SELL, 350, 15800, broker2, shareholder),
                 new Order(12, security, Side.SELL, 285, 15810, broker2, shareholder),
                 new Order(13, security, Side.SELL, 800, 15810, broker2, shareholder),
@@ -130,6 +124,19 @@ public class TempTest {
         stopOrders.forEach(stopOrder -> stopOrderBook.enqueue(stopOrder));
     }
 
+    void setupAuctionOrders() {
+        orderBook = security.getOrderBook();
+        List<Order> auctionOrders = Arrays.asList(
+                new Order(1, security, Side.BUY, 445, 16000, broker1, shareholder),
+                new Order(2, security, Side.BUY, 43, 15900, broker1, shareholder),
+                new Order(3, security, Side.BUY, 304, 15800, broker1, shareholder),
+
+                new Order(9, security, Side.SELL, 285, 15430, broker2, shareholder),
+                new Order(10, security, Side.SELL, 350, 15600, broker1, shareholder)
+        );
+        auctionOrders.forEach(order -> orderBook.enqueue(order));
+    }
+    
     @Test
     void publish_change_state_from_continuous_to_auction(){
         stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
