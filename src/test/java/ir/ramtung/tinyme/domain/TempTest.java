@@ -12,7 +12,6 @@ import ir.ramtung.tinyme.messaging.request.*;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
-import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -24,55 +23,21 @@ import java.util.List;
 import static org.mockito.Mockito.verify;
 
 
-
-import ir.ramtung.tinyme.config.MockedJMSTestConfig;
-import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
-
-import ir.ramtung.tinyme.domain.entity.*;
-import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.*;
-import ir.ramtung.tinyme.config.MockedJMSTestConfig;
-import ir.ramtung.tinyme.domain.service.OrderHandler;
-import ir.ramtung.tinyme.messaging.EventPublisher;
-import ir.ramtung.tinyme.repository.BrokerRepository;
-import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
-import ir.ramtung.tinyme.repository.ShareholderRepository;
 
-import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.junit.jupiter.api.BeforeEach;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.time.LocalDateTime;
-
-import java.util.LinkedList;
-import java.util.Arrays;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-
-
-import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Import(MockedJMSTestConfig.class)
@@ -314,7 +279,7 @@ public class TempTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(200);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.STOP_PRICE_IN_AUCTION);
+                Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
     }
 
     @Test
@@ -345,7 +310,7 @@ public class TempTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(26);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.STOP_PRICE_IN_AUCTION);
+                Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
     }
 
     @Test

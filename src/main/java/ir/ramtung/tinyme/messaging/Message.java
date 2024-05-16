@@ -1,8 +1,6 @@
 package ir.ramtung.tinyme.messaging;
 
 
-import java.util.List;
-
 public class Message {
     public static final String INVALID_ORDER_ID = "Invalid order ID";
     public static final String ORDER_QUANTITY_NOT_POSITIVE = "Order quantity is not-positive";
@@ -24,6 +22,7 @@ public class Message {
     public static final String INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE = "Cannot specify peaksize for a stop limit order";
     public static final String INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY = "Cannot specify minimum execution quantity for a stop limit order";
     public static final String MIN_EXECUTION_QUANTITY_IN_AUCTION = "Minimum execution quantity not allowed in auction state";
-    public static final String STOP_PRICE_IN_AUCTION = "Stop price order is not allowed in auction state";
+    public static final String NEW_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION = "New Stop price order is not allowed at auction state";
+    public static final String UPDATE_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION = "New Stop price order is not allowed at auction state";
     public static final String DELETE_STOP_ORDER_NOT_ALLOWED_IN_AUCTION = "Deleting stop order is not allowed in auction state";
 }
