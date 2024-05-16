@@ -36,7 +36,7 @@ public class Security {
         if (enterOrderRq.getStopPrice() != 0)
             order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getStopPrice(), enterOrderRq.getOrderId());
+                    enterOrderRq.getEntryTime(), enterOrderRq.getStopPrice(), enterOrderRq.getRequestId());
         else if (enterOrderRq.getPeakSize() == 0)
             order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
