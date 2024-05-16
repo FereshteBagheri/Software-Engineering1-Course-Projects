@@ -6,6 +6,7 @@ import ir.ramtung.tinyme.messaging.event.*;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
@@ -720,5 +721,18 @@ public class StopLimitOrderTest {
         assertThat(orderBook.findByOrderId(Side.BUY, orderId)).isNotEqualTo(null);
     }
 
+    @Test
+    void update_stop_price_after_activation_is_rejected(){
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 400, 15800, 1, shareholder.getShareholderId(), 0, 0, 14000));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(50);
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 26, LocalDateTime.now(), Side.BUY, 50, 15800, 1, shareholder.getShareholderId(), 0, 0, 15000));
+        ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
+        verify(eventPublisher).publish(orderRejectedCaptor.capture());
+        OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
+        assertThat(outputEvent.getOrderId()).isEqualTo(26);
+        assertThat(outputEvent.getErrors()).containsOnly(
+                Message.ORDER_ID_NOT_FOUND);
+    }
 
 }

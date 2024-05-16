@@ -226,6 +226,28 @@ public class TempTest {
     }
 
     @Test
+    void order_with_MEQ_in_order_book_is_updated_at_auction(){
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 10, 0));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
+        security.setMatchingState(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 26, LocalDateTime.now(), Side.BUY, 400, 15900, 1, shareholder.getShareholderId(), 0, 10, 0));
+        verify (eventPublisher). publish(new OrderUpdatedEvent(2, 26));
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(400);
+    }
+
+    @Test
+    void activated_stop_limit_order_is_updated_at_auction(){
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 15430, 1, shareholder.getShareholderId(), 0, 0, 1400));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(15);
+        security.setMatchingState(MatchingState.AUCTION);
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 26, LocalDateTime.now(), Side.BUY, 400, 15900, 1, shareholder.getShareholderId(), 0, 0, 0));
+        verify (eventPublisher). publish(new OrderUpdatedEvent(2, 26));
+        assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(400);
+    }
+
+    @Test
     void new_stop_limit_order_is_rejected_at_auction() {
         security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 14000));
