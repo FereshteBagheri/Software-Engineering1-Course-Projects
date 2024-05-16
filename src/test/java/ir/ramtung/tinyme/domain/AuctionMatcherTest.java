@@ -4,7 +4,6 @@ import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
-import ir.ramtung.tinyme.domain.service.OrderHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,6 @@ import static org.assertj.core.api.Assertions.*;
 @SpringBootTest
 @Import(MockedJMSTestConfig.class)
 public class AuctionMatcherTest {
-    @Autowired
-    OrderHandler orderHandler;
     private Security security;
     private Broker broker;
     private Shareholder shareholder;
