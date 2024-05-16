@@ -376,4 +376,22 @@ public class TempTest {
         assertThat(orderBook.findByOrderId(Side.SELL, 27).getQuantity()).isEqualTo(400);
 
     }
+
+    @Test
+    void buyer_credit_is_correct_from_auction_to_auction() {
+        Long initalCredit = broker1.getCredit();
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        setupAuctionOrders();
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC",MatchingState.AUCTION));
+        assertThat(broker1.getCredit()).isEqualTo(initalCredit + 445 * 200 + 43 * 100 + 350 * 15800);
+    }
+
+    @Test
+    void seller_credit_is_correct_from_auction_to_auction() {
+        long initalCredit = broker2.getCredit();
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        setupAuctionOrders();
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        assertThat(broker2.getCredit()).isEqualTo(initalCredit + (157 + 285) * 15800);
+    }
 }
