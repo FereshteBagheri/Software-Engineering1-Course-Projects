@@ -588,6 +588,7 @@ public class OrderHandlerTest {
             icebergOrder.getBroker().getBrokerId(),
             icebergOrder.getShareholder().getShareholderId(), 100, 0, 0));
 
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 7));
         assertThat(security.getOrderBook().findByOrderId(Side.SELL, 7)).isNotEqualTo(null);
     }
 
