@@ -135,9 +135,9 @@ public class OrderHandler extends ReqHandler {
             if (enterOrderRq.getMinimumExecutionQuantity() > 0 && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
             if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType()==OrderEntryType.NEW_ORDER)
-                throw new InvalidRequestException(Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
+                throw new InvalidRequestException(Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
             if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType()==OrderEntryType.UPDATE_ORDER)
-                throw new InvalidRequestException(Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
+                throw new InvalidRequestException(Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
         }
     }
 

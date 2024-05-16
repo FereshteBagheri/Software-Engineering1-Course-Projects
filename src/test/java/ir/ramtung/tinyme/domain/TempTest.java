@@ -120,6 +120,7 @@ public class TempTest {
                 new StopLimitOrder(18, security, Side.BUY, 445, 15450, broker1, shareholder, 16400, 12),
                 new StopLimitOrder(19, security, Side.BUY, 526, 15450, broker1, shareholder, 16500, 13),
                 new StopLimitOrder(20, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
+
                 new StopLimitOrder(21, security, Side.SELL, 350, 15800, broker2, shareholder, 14600, 15),
                 new StopLimitOrder(22, security, Side.SELL, 285, 15810, broker1, shareholder, 14550, 16),
                 new StopLimitOrder(23, security, Side.SELL, 800, 15810, broker2, shareholder, 14500, 17),
@@ -279,7 +280,7 @@ public class TempTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(200);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
+                Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
     }
 
     @Test
@@ -310,7 +311,7 @@ public class TempTest {
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
         assertThat(outputEvent.getOrderId()).isEqualTo(26);
         assertThat(outputEvent.getErrors()).containsOnly(
-                Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_AT_AUCTION);
+                Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
     }
 
     @Test
@@ -331,5 +332,27 @@ public class TempTest {
         assertThat(outputEvent.getOrderId()).isEqualTo(26);
         assertThat(outputEvent.getErrors()).containsOnly(
                 Message.BUYER_HAS_NOT_ENOUGH_CREDIT);
+    }
+
+
+    //check out this test
+    //not completed
+
+    @Test
+    void activated_stop_orders_are_added_to_order_book_after_auction_and_not_matched(){
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.SELL, 300, 15100, 2, shareholder.getShareholderId(), 0, 0, 16000));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(3, "ABC", MatchingState.AUCTION));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(4, "ABC", MatchingState.AUCTION));
+
+        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
+        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+
+//        assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
+
     }
 }
