@@ -205,6 +205,22 @@ public class TempTest {
     }
 
     @Test
+    void openingPrice_is_published_when_sell_order_is_updated() {
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 9, LocalDateTime.now(), Side.SELL, 50, 15400, 2, shareholder.getShareholderId(), 0, 0, 0));
+        verify (eventPublisher). publish(new OrderUpdatedEvent(1, 9));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 750));
+    }
+
+    @Test
+    void openingPrice_is_published_when_buy_order_is_updated() {
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq(1, "ABC", MatchingState.AUCTION));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 433, 16000, 1, shareholder.getShareholderId(), 0, 0, 0));
+        verify (eventPublisher). publish(new OrderUpdatedEvent(1, 1));
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 780));
+    }
+
+    @Test
     void openingPrice_is_published_when_new_buy_order_enters() {
         security.setMatchingState(MatchingState.AUCTION);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 18, 15920, 1, shareholder.getShareholderId(), 0, 0, 0));
