@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -570,6 +571,24 @@ public class OrderHandlerTest {
         verify(eventPublisher).publish(any(OrderAcceptedEvent.class));
         assertThat(shareholder1.hasEnoughPositionsOn(security, 100_000)).isTrue();
         assertThat(shareholder.hasEnoughPositionsOn(security, 500)).isTrue();
+    }
+
+    @Test
+    void iceberg_order_add_to_queue_in_auction_state(){
+        security.setMatchingState(MatchingState.AUCTION);
+        Order icebergOrder = new IcebergOrder(7, security, Side.SELL, 300, 15450, broker2, shareholder, 100);
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,
+            icebergOrder.getSecurity().getIsin(),
+            icebergOrder.getOrderId(),
+            icebergOrder.getEntryTime(),
+            icebergOrder.getSide(),
+            icebergOrder.getTotalQuantity(),
+            icebergOrder.getPrice(),
+            icebergOrder.getBroker().getBrokerId(),
+            icebergOrder.getShareholder().getShareholderId(), 100, 0, 0));
+
+        assertThat(security.getOrderBook().findByOrderId(Side.SELL, 7)).isNotEqualTo(null);
     }
 
 }
