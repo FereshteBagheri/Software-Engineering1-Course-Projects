@@ -27,9 +27,11 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -106,4 +108,29 @@ public class ChangeMatchingStateHandlerTest {
         verify(eventPublisher).publish(new TradeEvent(security.getIsin(), openingPrice, 350, 1, 2));
         verify(eventPublisher).publish(new TradeEvent(security.getIsin(), openingPrice, 100, 1, 3));
     }
-} 
+
+    @Test
+    void no_transaction_when_tradeable_quantity_equal_to_zero_in_auction_matching(){
+        security.setMatchingState(MatchingState.AUCTION);
+        List<Order> orders = Arrays.asList(
+                new Order(1, security, Side.BUY, 304, 15700, broker1, shareholder),
+                new Order(2, security, Side.BUY, 43, 15500, broker2, shareholder),
+                new Order(3, security, Side.BUY, 445, 15450, broker3, shareholder),
+                new Order(4, security, Side.BUY, 526, 15450, broker1, shareholder),
+                new Order(5, security, Side.BUY, 1000, 15400, broker2, shareholder),
+                new Order(6, security, Side.SELL, 350, 15800, broker3, shareholder),
+                new Order(7, security, Side.SELL, 285, 15810, broker1, shareholder),
+                new Order(8, security, Side.SELL, 800, 15810, broker2, shareholder),
+                new Order(9, security, Side.SELL, 340, 15820, broker3, shareholder),
+                new Order(10, security, Side.SELL, 65, 15820, broker1, shareholder)
+        );
+        orders.forEach(order -> orderBook.enqueue(order));
+        LinkedList<Order> validBuyQueue = orderBook.getBuyQueue();
+        LinkedList<Order> validSellQueue = orderBook.getSellQueue();
+        ChangeMatchingStateRq changeMatchingStateRq = new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS);
+        stateHandler.handleChangeMatchingStateRq(changeMatchingStateRq);
+        assertThat(orderBook.getBuyQueue()).isEqualTo(validBuyQueue);
+        assertThat(orderBook.getSellQueue()).isEqualTo(validSellQueue);
+        verify(eventPublisher, times(0)).publish(any(TradeEvent.class));
+    }
+}
