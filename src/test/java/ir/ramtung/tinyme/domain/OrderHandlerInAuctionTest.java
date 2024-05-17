@@ -50,7 +50,6 @@ public class OrderHandlerInAuctionTest {
     private List<StopLimitOrder> stopOrders;
     private List<Order> regularOrders;
 
-
     @Autowired
     EventPublisher eventPublisher;
     @Autowired
@@ -171,7 +170,17 @@ public class OrderHandlerInAuctionTest {
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 9));
         assertThat(orderBook.findByOrderId(Side.SELL, 9)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 700));
+    }
 
+    @Test
+    void openingPrice_is_published_when_iceberg_sell_order_is_deleted() {
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 100, 15800, 2, shareholder.getShareholderId(), 10, 0, 0));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        setupAuctionOrders();
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 200));
+        verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));
+        assertThat(orderBook.findByOrderId(Side.SELL, 200)).isEqualTo(null);
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
     }
 
     @Test
@@ -182,7 +191,6 @@ public class OrderHandlerInAuctionTest {
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 810));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 200));
     }
-
 
     @Test
     void openingPrice_is_published_when_new_iceberg_buy_order_enters() {
@@ -210,7 +218,17 @@ public class OrderHandlerInAuctionTest {
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 3));
         assertThat(orderBook.findByOrderId(Side.BUY, 3)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15600, 635));
+    }
 
+    @Test
+    void openingPrice_is_published_when_iceberg_buy_order_is_deleted() {
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 40, 15700, 1, shareholder.getShareholderId(), 10, 0, 0));
+        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        setupAuctionOrders();
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 200));
+        verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));
+        assertThat(orderBook.findByOrderId(Side.BUY, 200)).isEqualTo(null);
+        verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
     }
 
     @Test
@@ -337,5 +355,4 @@ public class OrderHandlerInAuctionTest {
         assertThat(outputEvent.getErrors()).containsOnly(
                 Message.BUYER_HAS_NOT_ENOUGH_CREDIT);
     }
-
 }
