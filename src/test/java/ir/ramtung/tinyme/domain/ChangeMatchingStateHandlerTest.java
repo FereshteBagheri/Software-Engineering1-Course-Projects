@@ -138,10 +138,7 @@ public class ChangeMatchingStateHandlerTest {
     void active_stop_limit_orders_after_changing_state(){
         security.setMatchingState(MatchingState.AUCTION);
         broker1.increaseCreditBy(100000000);
-        broker2.increaseCreditBy(100000000);
-        
-        System.out.println("broker1 old credit: " + broker1.getCredit());
-        System.out.println("broker2 old credit: " + broker2.getCredit());
+        broker2.increaseCreditBy(1000000);
 
         List<Order> orders = Arrays.asList(
             new Order(1, security, Side.BUY, 445, 17000, broker1, shareholder),
@@ -159,7 +156,7 @@ public class ChangeMatchingStateHandlerTest {
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
         List<StopLimitOrder> stopOrders = Arrays.asList(
-            new StopLimitOrder(13, security, Side.BUY, 430, 15500, broker2, shareholder, 16300, 11),
+            new StopLimitOrder(13, security, Side.BUY, 430, 16340, broker2, shareholder, 16300, 11),
             new StopLimitOrder(14, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
             new StopLimitOrder(15, security, Side.SELL, 340, 15820, broker1, shareholder, 14450, 18),
             new StopLimitOrder(16, security, Side.SELL, 65, 15820, broker1, shareholder, 14400, 19)
@@ -174,8 +171,9 @@ public class ChangeMatchingStateHandlerTest {
         
         assertThat(security.getOrderBook().findByOrderId(Side.BUY, 1)).isEqualTo(null);
         assertThat(security.getOrderBook().findByOrderId(Side.SELL, 7)).isEqualTo(null);
-       assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 13)).isNotEqualTo(null);
-       assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 13).getQuantity()).isEqualTo(315);
+       assertThat(security.getOrderBook().findByOrderId(Side.BUY, 13)).isNotEqualTo(null);
+       assertThat(security.getOrderBook().findByOrderId(Side.BUY, 13).getQuantity()).isEqualTo(315);
+       assertThat(broker1.getCredit()).isEqualTo(100000000 + 445* 670);
 
         // Check remaining credit
         System.out.println("broker1 new credit: " + broker1.getCredit());
