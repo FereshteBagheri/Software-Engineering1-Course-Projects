@@ -133,4 +133,54 @@ public class ChangeMatchingStateHandlerTest {
         assertThat(orderBook.getSellQueue()).isEqualTo(validSellQueue);
         verify(eventPublisher, times(0)).publish(any(TradeEvent.class));
     }
+
+    @Test
+    void active_stop_limit_orders_after_changing_state(){
+        security.setMatchingState(MatchingState.AUCTION);
+        broker1.increaseCreditBy(100000000);
+        broker2.increaseCreditBy(100000000);
+        
+        System.out.println("broker1 old credit: " + broker1.getCredit());
+        System.out.println("broker2 old credit: " + broker2.getCredit());
+
+        List<Order> orders = Arrays.asList(
+            new Order(1, security, Side.BUY, 445, 17000, broker1, shareholder),
+            new Order(2, security, Side.BUY, 304, 15700, broker1, shareholder),
+            new Order(3, security, Side.BUY, 43, 15500, broker2, shareholder),
+            new Order(4, security, Side.BUY, 445, 15450, broker1, shareholder),
+            new Order(5, security, Side.BUY, 526, 15450, broker1, shareholder),
+            new Order(6, security, Side.BUY, 1000, 15400, broker2, shareholder),
+            new Order(7, security, Side.SELL, 560, 16330, broker2, shareholder),
+            new Order(8, security, Side.SELL, 350, 16800, broker1, shareholder),
+            new Order(9, security, Side.SELL, 285, 16810, broker1, shareholder),
+            new Order(10, security, Side.SELL, 800, 16810, broker2, shareholder),
+            new Order(11, security, Side.SELL, 340, 16820, broker2, shareholder),
+            new Order(12, security, Side.SELL, 65, 16820, broker1, shareholder)
+        );
+        orders.forEach(order -> security.getOrderBook().enqueue(order));
+        List<StopLimitOrder> stopOrders = Arrays.asList(
+            new StopLimitOrder(13, security, Side.BUY, 430, 15500, broker2, shareholder, 16300, 11),
+            new StopLimitOrder(14, security, Side.BUY, 1000, 15400, broker2, shareholder, 16500, 14),
+            new StopLimitOrder(15, security, Side.SELL, 340, 15820, broker1, shareholder, 14450, 18),
+            new StopLimitOrder(16, security, Side.SELL, 65, 15820, broker1, shareholder, 14400, 19)
+        );
+        stopOrders.forEach(stopOrder -> security.getStopOrderBook().enqueue(stopOrder));
+
+        ChangeMatchingStateRq changeMatchingStateRq = new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS);
+        stateHandler.handleChangeMatchingStateRq(changeMatchingStateRq);
+
+        // order1 and oder7 matching in auction mode, now new lastTradePrice is equal to openingPrice which is 16330
+        // It makes order13 in stopLimitOrders activate, so it will be matched to order5 and exchange only 115 unit quantity
+        
+        assertThat(security.getOrderBook().findByOrderId(Side.BUY, 1)).isEqualTo(null);
+        assertThat(security.getOrderBook().findByOrderId(Side.SELL, 7)).isEqualTo(null);
+       assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 13)).isNotEqualTo(null);
+       assertThat(security.getStopOrderBook().findByOrderId(Side.BUY, 13).getQuantity()).isEqualTo(315);
+
+        // Check remaining credit
+        System.out.println("broker1 new credit: " + broker1.getCredit());
+        System.out.println("broker2 new credit: " + broker2.getCredit());
+        // Check OrderActivatedEvent
+    }
+
 }
