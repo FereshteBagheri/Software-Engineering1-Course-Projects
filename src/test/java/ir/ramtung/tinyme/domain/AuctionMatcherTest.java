@@ -74,7 +74,6 @@ public class AuctionMatcherTest {
         Order afterFirstTradeOrder10= new Order(orderBook.findByOrderId(Side.SELL, 10).getOrderId(), orderBook.findByOrderId(Side.SELL, 10).getSecurity(), orderBook.findByOrderId(Side.SELL, 10).getSide(), 190, orderBook.findByOrderId(Side.SELL, 10).getPrice(), orderBook.findByOrderId(Side.SELL, 10).getBroker(), orderBook.findByOrderId(Side.SELL, 10).getShareholder(), orderBook.findByOrderId(Side.SELL, 10).getEntryTime());
         Order afterSecondTradeOrder10 = new Order(orderBook.findByOrderId(Side.SELL, 10).getOrderId(), orderBook.findByOrderId(Side.SELL, 10).getSecurity(), orderBook.findByOrderId(Side.SELL, 10).getSide(), 147, orderBook.findByOrderId(Side.SELL, 10).getPrice(), orderBook.findByOrderId(Side.SELL, 10).getBroker(), orderBook.findByOrderId(Side.SELL, 10).getShareholder(), orderBook.findByOrderId(Side.SELL, 10).getEntryTime());
         Order afterFirstTradeOrder3 = new Order(orderBook.findByOrderId(Side.BUY, 3).getOrderId(), orderBook.findByOrderId(Side.BUY, 3).getSecurity(), orderBook.findByOrderId(Side.BUY, 3).getSide(), 157, orderBook.findByOrderId(Side.BUY, 3).getPrice(), orderBook.findByOrderId(Side.BUY, 3).getBroker(), orderBook.findByOrderId(Side.BUY, 3).getShareholder(), orderBook.findByOrderId(Side.BUY, 3).getEntryTime());
-        
 
         LinkedList<Trade> validTrades = new LinkedList<>();
 

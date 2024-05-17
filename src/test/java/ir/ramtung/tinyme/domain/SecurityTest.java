@@ -287,7 +287,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_only_one_with_max_exchanged_quantity(){
+    void find_openingPrice_with_single_valid_price(){
         List<Order> newOrders = Arrays.asList(
             new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
             new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
@@ -305,7 +305,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_with_two_different_prices_and_differences_to_last_trade_price(){
+    void find_openingPrice_with_multiple_valid_prices_with_different_distance_to_last_trade_price(){
         security.setLastTradePrice(15804);
         List<Order> newOrders = Arrays.asList(
                 new Order(11, security, Side.BUY, 304, 15805, broker, shareholder),
@@ -324,7 +324,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_two_valid_price_with_same_difference_to_last_trade_price(){
+    void find_openingPrice_with_multiple_valid_prices_with_same_difference_to_last_trade_price(){
         security.setLastTradePrice(15803);
         List<Order> newOrders = Arrays.asList(
                 new Order(11, security, Side.BUY, 304, 15806, broker, shareholder),
@@ -373,7 +373,14 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_only_one_new_order(){
+    void opening_price_is_zero_when_tradeable_quantity_is_zero(){
+        CustomPair pair = security.findOpeningPrice();
+        assertThat(pair.getFirst()).isEqualTo(0);
+        assertThat(pair.getSecond()).isEqualTo(0);
+    }
+
+    @Test
+    void find_openingPrice_when_new_order_enters(){
         security.setLastTradePrice(15750);
         Order newOrder = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
         security.getOrderBook().enqueue(newOrder);
@@ -385,7 +392,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_opening_price_only_one_new_iceberg_order(){
+    void find_openingPrice_when_new_iceberg_order_enters(){
         security.setLastTradePrice(15750);
         Order newIcebergOrder = new IcebergOrder(11, security, Side.BUY, 450, 15900, broker1, shareholder, 50);
         security.getOrderBook().enqueue(newIcebergOrder);
@@ -395,7 +402,6 @@ class SecurityTest {
         assertThat(pair.getFirst()).isEqualTo(validOpeningPrice);
         assertThat(pair.getSecond()).isEqualTo(validExchangedQuantity);
     }
-
 
     @Test
     void increasing_quantity_changes_priority_in_auction() {
@@ -487,15 +493,11 @@ class SecurityTest {
                 new IcebergOrder(4, security, SELL, 30, 12, broker, shareholder, 10)
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
-
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(5, security.getIsin(), 4, LocalDateTime.now(), SELL, 30, 10, 0, 0, 10, 0, 0);
-
         MatchResult result = security.updateOrder(updateReq, auctionMatcher);
-
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
         assertThat(result.trades()).hasSize(0);
         assertThat(result.remainder().getQuantity()).isEqualTo(10);
+        assertThat(result.remainder().getTotalQuantity()).isEqualTo(30);
     }
-
-
 }
