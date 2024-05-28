@@ -68,10 +68,7 @@ public class AuctionMatcher extends Matcher {
             enqueueOpenOrder(icebergOrder, orders);
     }
 
-    private Trade createTrade(Order buyOrder, Order sellOrder, int openingPrice) {
-        int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
-        return new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
-    }
+
 
     private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int tradeQuantity) {
         if (buyOrder.getQuantity() == sellOrder.getQuantity()) {

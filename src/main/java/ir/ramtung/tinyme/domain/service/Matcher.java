@@ -62,4 +62,9 @@ public class Matcher {
             }
         }
     }
+
+    public Trade createTrade(Order buyOrder, Order sellOrder, int matchingPrice) {
+        int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
+        return new Trade(buyOrder.getSecurity(), matchingPrice, quantityToTrade, buyOrder, sellOrder);
+    }
 }

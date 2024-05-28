@@ -19,13 +19,13 @@ public class ContinuousMatcher extends Matcher{
             else
                 return MatchResult.notActivated(stopLimitOrder);
         }
-        
+
         while (orderBook.hasOrderOfType(newOrder.getSide().opposite()) && newOrder.getQuantity() > 0) {
             Order matchingOrder = orderBook.matchWithFirst(newOrder);
             if (matchingOrder == null)
                 break;
 
-            Trade trade = new Trade(newOrder.getSecurity(), matchingOrder.getPrice(), Math.min(newOrder.getQuantity(), matchingOrder.getQuantity()), newOrder, matchingOrder);
+            Trade trade = createTrade(newOrder, matchingOrder, matchingOrder.getPrice());
             if (newOrder.getSide() == Side.BUY) {
                 if (trade.buyerHasEnoughCredit())
                     trade.decreaseBuyersCredit();
@@ -105,6 +105,5 @@ public class ContinuousMatcher extends Matcher{
         updatePositionsFromTrades(result.trades());
         return result;
     }
-
 
 }
