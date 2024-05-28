@@ -16,8 +16,7 @@ public class AuctionMatcher extends Matcher {
             Order buyOrder = buyOrders.getFirst();
             Order sellOrder = sellOrders.getFirst();
 
-            int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
-            Trade trade = new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
+            Trade trade = createTrade(buyOrder, sellOrder, openingPrice);
 
             if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
                 removeOrder(buyOrder, buyOrders);
@@ -82,5 +81,10 @@ public class AuctionMatcher extends Matcher {
         handleIcebergOrder(order);
         if (order instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
             enqueueOpenOrder(icebergOrder, orders);
+    }
+
+    private Trade createTrade(Order buyOrder, Order sellOrder, int openingPrice) {
+        int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
+        return new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
     }
 }
