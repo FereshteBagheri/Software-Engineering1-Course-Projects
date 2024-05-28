@@ -36,10 +36,7 @@ public class Security {
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
         Order order = findOrderByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
-        if (order == null)
-            throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
-        if (order instanceof StopLimitOrder && state == MatchingState.AUCTION)
-            throw new InvalidRequestException(Message.DELETE_STOP_ORDER_NOT_ALLOWED_IN_AUCTION);
+        validateDeleteOrderRequest(order);
         if (order.getSide() == Side.BUY)
             order.getBroker().increaseCreditBy(order.getValue()); 
         removeOrderByOrderId(order, deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
@@ -220,5 +217,13 @@ public class Security {
         if (order == null)
             order = stopOrderBook.findByOrderId(side, orderId);
         return order;
+    }
+
+    private void validateDeleteOrderRequest(Order order) throws InvalidRequestException {
+        if (order == null)
+            throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
+        if (order instanceof StopLimitOrder && state == MatchingState.AUCTION)
+            throw new InvalidRequestException(Message.DELETE_STOP_ORDER_NOT_ALLOWED_IN_AUCTION);
+
     }
 }
