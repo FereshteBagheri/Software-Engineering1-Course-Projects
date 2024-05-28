@@ -17,7 +17,7 @@ public class AuctionMatcher extends Matcher {
             Order sellOrder = sellOrders.getFirst();
 
             Trade trade = createTrade(buyOrder, sellOrder, openingPrice);
-            updateOrdersAfterTrade(buyOrder, sellOrder, buyOrders, sellOrders, trade);
+            updateOrdersAfterTrade(buyOrder, sellOrder, buyOrders, sellOrders, trade.getQuantity());
             adjustCredit(buyOrder, trade, openingPrice);
             trades.add(trade);
         }
@@ -73,18 +73,18 @@ public class AuctionMatcher extends Matcher {
         return new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
     }
 
-    private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, Trade trade) {
-                    if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
+    private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int tradeQuantity) {
+        if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
                 removeOrder(buyOrder, buyOrders);
                 removeOrder(sellOrder, sellOrders);
                 handleOrder(buyOrder, buyOrders);
                 handleOrder(sellOrder, sellOrders);
             } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
-                buyOrder.decreaseQuantity(trade.getQuantity());
+                buyOrder.decreaseQuantity(tradeQuantity);
                 removeOrder(sellOrder, sellOrders);
                 handleOrder(sellOrder, sellOrders);
-            } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
-                sellOrder.decreaseQuantity(trade.getQuantity());
+            } else {
+                sellOrder.decreaseQuantity(tradeQuantity);
                 removeOrder(buyOrder, buyOrders);
                 handleOrder(buyOrder, buyOrders);
             }
