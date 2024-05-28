@@ -28,9 +28,7 @@ public class Security {
     private int lastTradePrice;
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (enterOrderRq.getSide() == Side.SELL &&
-                !shareholder.hasEnoughPositionsOn(this,
-                        orderBook.totalSellQuantityByShareholder(shareholder) + stopOrderBook.totalSellQuantityByShareholder(shareholder) +  enterOrderRq.getQuantity()))
+        if (!shareholderHasEnoughPosition(enterOrderRq, shareholder))
             return MatchResult.notEnoughPositions();
         Order order;
         if (enterOrderRq.getStopPrice() != 0)
@@ -203,6 +201,18 @@ public class Security {
         if (tradeableQuantity == 0)
             openingPrice = 0;
         return new CustomPair(openingPrice, tradeableQuantity);
+    }
+
+    private boolean shareholderHasEnoughPosition(EnterOrderRq req, Shareholder shareholder) {
+        if (req.getSide() == Side.SELL &&
+                !shareholder.hasEnoughPositionsOn(this,
+                        totalSellQuantityByShareholderInQueue(shareholder) +  req.getQuantity()))
+            return false;
+        return true;
+    }
+
+    private int totalSellQuantityByShareholderInQueue(Shareholder shareholder){
+        return orderBook.totalSellQuantityByShareholder(shareholder) + stopOrderBook.totalSellQuantityByShareholder(shareholder);
     }
     
 }
