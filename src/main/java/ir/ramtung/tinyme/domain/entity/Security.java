@@ -30,21 +30,7 @@ public class Security {
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
         if (!shareholderHasEnoughPosition(enterOrderRq, shareholder))
             return MatchResult.notEnoughPositions();
-        Order order;
-        if (enterOrderRq.getStopPrice() != 0)
-            order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getStopPrice(), enterOrderRq.getRequestId());
-        else if (enterOrderRq.getPeakSize() == 0)
-            order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), false);
-        else
-            order = new IcebergOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getPeakSize(),
-                    enterOrderRq.getMinimumExecutionQuantity(), false);
-
+        Order order = createOrderFromRequest(enterOrderRq, broker, shareholder);
         return matcher.execute(order);
     }
 
@@ -214,5 +200,20 @@ public class Security {
     private int totalSellQuantityByShareholderInQueue(Shareholder shareholder){
         return orderBook.totalSellQuantityByShareholder(shareholder) + stopOrderBook.totalSellQuantityByShareholder(shareholder);
     }
-    
+
+    private Order createOrderFromRequest(EnterOrderRq request, Broker broker, Shareholder shareholder) {
+        if (request.getStopPrice() != 0)
+            return new StopLimitOrder(request.getOrderId(), this, request.getSide(),
+                    request.getQuantity(), request.getPrice(), broker, shareholder,
+                    request.getEntryTime(), request.getStopPrice(), request.getRequestId());
+        else if (request.getPeakSize() == 0)
+            return new Order(request.getOrderId(), this, request.getSide(),
+                    request.getQuantity(), request.getPrice(), broker, shareholder,
+                    request.getEntryTime(), request.getMinimumExecutionQuantity(), false);
+        else
+            return new IcebergOrder(request.getOrderId(), this, request.getSide(),
+                    request.getQuantity(), request.getPrice(), broker, shareholder,
+                    request.getEntryTime(), request.getPeakSize(),
+                    request.getMinimumExecutionQuantity(), false);
+    }
 }
