@@ -34,17 +34,10 @@ public class ContinuousMatcher extends Matcher{
                     return MatchResult.notEnoughCredit();
                 }
             }
+
             trade.increaseSellersCredit();
             trades.add(trade);
-
-            if (newOrder.getQuantity() >= matchingOrder.getQuantity()) {
-                newOrder.decreaseQuantity(matchingOrder.getQuantity());
-                orderBook.removeFirst(matchingOrder.getSide());
-                handleIcebergOrder(matchingOrder);
-            } else {
-                matchingOrder.decreaseQuantity(newOrder.getQuantity());
-                newOrder.makeQuantityZero();
-            }
+            updateOrdersAfterTrade(newOrder, matchingOrder,  matchingOrder.getQuantity(), orderBook);
         }
         return MatchResult.executed(newOrder, trades);
     }
@@ -105,5 +98,18 @@ public class ContinuousMatcher extends Matcher{
         updatePositionsFromTrades(result.trades());
         return result;
     }
+
+    private void updateOrdersAfterTrade(Order newOrder, Order matchingOrder, int matchingQuantity, OrderBook orderBook) {
+        if (newOrder.getQuantity() >= matchingQuantity) {
+            newOrder.decreaseQuantity(matchingQuantity);
+            orderBook.removeFirst(matchingOrder.getSide());
+            handleIcebergOrder(matchingOrder);
+        } else {
+            matchingOrder.decreaseQuantity(newOrder.getQuantity());
+            newOrder.makeQuantityZero();
+        }
+    }
+
+
 
 }
