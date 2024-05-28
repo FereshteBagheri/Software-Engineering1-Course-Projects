@@ -17,22 +17,7 @@ public class AuctionMatcher extends Matcher {
             Order sellOrder = sellOrders.getFirst();
 
             Trade trade = createTrade(buyOrder, sellOrder, openingPrice);
-
-            if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
-                removeOrder(buyOrder, buyOrders);
-                removeOrder(sellOrder, sellOrders);
-                handleOrder(buyOrder, buyOrders);
-                handleOrder(sellOrder, sellOrders);
-            } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
-                buyOrder.decreaseQuantity(trade.getQuantity());
-                removeOrder(sellOrder, sellOrders);
-                handleOrder(sellOrder, sellOrders);
-            } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
-                sellOrder.decreaseQuantity(trade.getQuantity());
-                removeOrder(buyOrder, buyOrders);
-                handleOrder(buyOrder, buyOrders);
-            }
-
+            updateOrdersAfterTrade(buyOrder, sellOrder, buyOrders, sellOrders, trade);
             adjustCredit(buyOrder, trade, openingPrice);
             trades.add(trade);
         }
@@ -86,5 +71,22 @@ public class AuctionMatcher extends Matcher {
     private Trade createTrade(Order buyOrder, Order sellOrder, int openingPrice) {
         int quantityToTrade = Math.min(buyOrder.getQuantity(), sellOrder.getQuantity());
         return new Trade(buyOrder.getSecurity(), openingPrice, quantityToTrade, buyOrder, sellOrder);
+    }
+
+    private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, Trade trade) {
+                    if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
+                removeOrder(buyOrder, buyOrders);
+                removeOrder(sellOrder, sellOrders);
+                handleOrder(buyOrder, buyOrders);
+                handleOrder(sellOrder, sellOrders);
+            } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
+                buyOrder.decreaseQuantity(trade.getQuantity());
+                removeOrder(sellOrder, sellOrders);
+                handleOrder(sellOrder, sellOrders);
+            } else { // buyOrder.getQuantity() < sellOrder.getQuantity()
+                sellOrder.decreaseQuantity(trade.getQuantity());
+                removeOrder(buyOrder, buyOrders);
+                handleOrder(buyOrder, buyOrders);
+            }
     }
 }
