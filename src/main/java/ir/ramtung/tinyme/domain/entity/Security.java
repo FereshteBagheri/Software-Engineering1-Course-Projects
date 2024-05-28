@@ -35,9 +35,7 @@ public class Security {
     }
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
-        Order order = orderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
-        if (order == null)
-            order = stopOrderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
+        Order order = findOrderByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
         if (order == null)
             throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
         if (order instanceof StopLimitOrder && state == MatchingState.AUCTION)
@@ -215,5 +213,12 @@ public class Security {
                     request.getQuantity(), request.getPrice(), broker, shareholder,
                     request.getEntryTime(), request.getPeakSize(),
                     request.getMinimumExecutionQuantity(), false);
+    }
+
+    private Order findOrderByOrderId(Side side, long orderId) {
+        Order order = orderBook.findByOrderId(side, orderId);
+        if (order == null)
+            order = stopOrderBook.findByOrderId(side, orderId);
+        return order;
     }
 }
