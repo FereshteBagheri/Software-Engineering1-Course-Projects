@@ -52,11 +52,10 @@ public class StopLimitOrder extends Order {
     @Override
     public boolean queuesBefore(Order order) {
         StopLimitOrder stopOrder = (StopLimitOrder) order;
-        if (order.getSide() == Side.BUY) {
+        if (order.getSide() == Side.BUY)
             return stopPrice < stopOrder.getStopPrice();
-        } else {
+        else
             return stopPrice > stopOrder.getStopPrice();
-        }
     }
 
 

@@ -56,15 +56,14 @@ public class Security {
 
         boolean losesPriority = hasLostPriority(order, updateOrderRq);
 
-        if (updateOrderRq.getSide() == Side.BUY) {
+        if (updateOrderRq.getSide() == Side.BUY)
             order.getBroker().increaseCreditBy(order.getValue());
-        }
+
         Order originalOrder = order.snapshot();
         order.updateFromRequest(updateOrderRq);
         if (!losesPriority) {
-            if (updateOrderRq.getSide() == Side.BUY) {
+            if (updateOrderRq.getSide() == Side.BUY)
                 order.getBroker().decreaseCreditBy(order.getValue());
-            }
             return MatchResult.executed(null, List.of());
         }
         else
@@ -75,9 +74,8 @@ public class Security {
         MatchResult matchResult = matcher.execute(order);
         if (matchResult.outcome() != MatchingOutcome.EXECUTED && matchResult.outcome() != MatchingOutcome.NOT_ACTIVATED) {
             enqueueOrder(originalOrder);
-            if (updateOrderRq.getSide() == Side.BUY) {
+            if (updateOrderRq.getSide() == Side.BUY)
                 originalOrder.getBroker().decreaseCreditBy(originalOrder.getValue());
-            }
         }
         return matchResult;
     }
@@ -162,11 +160,11 @@ public class Security {
                     maxFulfilledSellPriceByBuy = sellPrice;
             }
         }
-        if (openingPrice >= lastTradePrice && lastTradePrice >= maxFulfilledSellPriceByBuy){
+        if (openingPrice >= lastTradePrice && lastTradePrice >= maxFulfilledSellPriceByBuy)
             openingPrice = lastTradePrice;
-        }else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxFulfilledSellPriceByBuy)) {
+        else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxFulfilledSellPriceByBuy))
             openingPrice = maxFulfilledSellPriceByBuy;
-        }
+
         if (tradeableQuantity == 0)
             openingPrice = 0;
         return new CustomPair(openingPrice, tradeableQuantity);

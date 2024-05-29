@@ -38,9 +38,8 @@ public abstract class Matcher {
         if (order instanceof IcebergOrder icebergOrder) {
             icebergOrder.decreaseQuantity(order.getQuantity());
             icebergOrder.replenish();
-            if (icebergOrder.getQuantity() > 0) {
+            if (icebergOrder.getQuantity() > 0)
                 order.getSecurity().getOrderBook().enqueue(icebergOrder);
-            }
         }
     }
 
