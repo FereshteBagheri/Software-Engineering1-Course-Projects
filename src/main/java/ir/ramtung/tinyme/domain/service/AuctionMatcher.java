@@ -9,6 +9,8 @@ import java.util.ListIterator;
 
 @Service
 public class AuctionMatcher extends Matcher {
+    public MatchResult match(Order order) { return MatchResult.executed(order, new LinkedList<>());}
+
     public MatchResult match(LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int openingPrice) {
         LinkedList<Trade> trades = new LinkedList<>();
 
@@ -48,27 +50,11 @@ public class AuctionMatcher extends Matcher {
         it.add(order);
     }
 
-    @Override
-    public MatchResult execute(Order order) {
-
-        if (order.getSide() == Side.BUY && !order.getBroker().hasEnoughCredit(order.getValue()))
-            return MatchResult.notEnoughCredit();
-
-        if (order.getSide() == Side.BUY)
-            order.getBroker().decreaseCreditBy(order.getValue());
-
-        order.getSecurity().enqueueOrder(order);
-        
-        return MatchResult.executed(order, new LinkedList<>());
-    }
-
     private void handleOrder(Order order, LinkedList<Order> orders) {
         handleIcebergOrder(order);
         if (order instanceof IcebergOrder icebergOrder && icebergOrder.getQuantity() > 0)
             enqueueOpenOrder(icebergOrder, orders);
     }
-
-
 
     private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int tradeQuantity) {
         if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
@@ -85,5 +71,16 @@ public class AuctionMatcher extends Matcher {
                 removeOrder(buyOrder, buyOrders);
                 handleOrder(buyOrder, buyOrders);
             }
+    }
+
+    public MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+        if (remainder.getSide() == Side.BUY && !remainder.getBroker().hasEnoughCredit(remainder.getValue()))
+            return MatchResult.notEnoughCredit();
+
+        if (remainder.getSide() == Side.BUY)
+            remainder.getBroker().decreaseCreditBy(remainder.getValue());
+
+        remainder.getSecurity().enqueueOrder(remainder);
+        return MatchResult.executed(remainder, trades);
     }
 }

@@ -69,34 +69,29 @@ public class ContinuousMatcher extends Matcher{
             rollbackSell(newOrder, trades);
     }
 
-    public MatchResult execute(Order order) {
-        int previous_quantity = order.getQuantity();
-        MatchResult result = match(order);
-        if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
-            return result;
 
-        if (result.remainder().getQuantity() > 0) {
-            if (!result.remainder().isMinimumQuantityExecuted() &&
-                    (result.remainder().getQuantity() > (previous_quantity - result.remainder().getMinimumExecutionQuantity()))){
-                rollbackTrades(result.remainder(), result.trades());
+    public MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+        if (remainder.getQuantity() > 0) {
+            if (!remainder.isMinimumQuantityExecuted() &&
+                    (remainder.getQuantity() > (previousQuantity - remainder.getMinimumExecutionQuantity()))){
+                rollbackTrades(remainder, trades);
                 return MatchResult.minimumNotMatched();
             }
 
-            if (order.getSide() == Side.BUY) {
-                if (!order.getBroker().hasEnoughCredit(result.remainder().getValue())) {
-                    rollbackTrades(result.remainder(), result.trades());
+            if (remainder.getSide() == Side.BUY) {
+                if (!remainder.getBroker().hasEnoughCredit(remainder.getValue())) {
+                    rollbackTrades(remainder, trades);
                     return MatchResult.notEnoughCredit();
                 }
-                order.getBroker().decreaseCreditBy(result.remainder().getValue());
+                remainder.getBroker().decreaseCreditBy(remainder.getValue());
             }
-            order.getSecurity().enqueueOrder(result.remainder());
+            remainder.getSecurity().enqueueOrder(remainder);
         }
 
-        if (!result.remainder().isMinimumQuantityExecuted())
-            result.remainder().setMinimumQuantityExecuted();
+        if (!remainder.isMinimumQuantityExecuted())
+            remainder.setMinimumQuantityExecuted();
 
-        updatePositionsFromTrades(result.trades());
-        return result;
+        return MatchResult.executed(remainder, trades);
     }
 
     private void updateOrdersAfterTrade(Order newOrder, Order matchingOrder, int matchingQuantity, OrderBook orderBook) {

@@ -13,10 +13,26 @@ import java.util.stream.Collectors;
 
 
 
-public class Matcher {
-    public MatchResult match(Order newOrder) { return MatchResult.executed(null, new LinkedList<>()); }
+public abstract class Matcher {
+    public abstract MatchResult match(Order newOrder);
 
-    public MatchResult execute(Order order) { return MatchResult.executed(null, new LinkedList<>());}
+    public abstract MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity);
+
+    public MatchResult execute(Order order) {
+        int previous_quantity = order.getQuantity();
+        MatchResult result = match(order);
+        if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
+            return result;
+
+        MatchResult result2 = addOrdertoOrderBook(result.remainder(), result.trades(), previous_quantity);
+        if(result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
+            result = result2;
+        if (result.outcome() != MatchingOutcome.EXECUTED)
+            return result;
+
+        updatePositionsFromTrades(result.trades());
+        return result;
+    }
 
     public void handleIcebergOrder(Order order) {
         if (order instanceof IcebergOrder icebergOrder) {
