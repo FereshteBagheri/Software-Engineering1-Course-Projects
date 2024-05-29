@@ -28,7 +28,7 @@ public class Security {
     private int lastTradePrice;
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (!shareholderHasEnoughPosition(enterOrderRq, shareholder))
+        if (!shareholderHasEnoughPosition(enterOrderRq, shareholder, enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order = createOrderFromRequest(enterOrderRq, broker, shareholder);
         return matcher.execute(order);
@@ -51,10 +51,7 @@ public class Security {
 
         validateUpdateOrderRequest(order, updateOrderRq);
 
-        if (updateOrderRq.getSide() == Side.SELL &&
-                !order.getShareholder().hasEnoughPositionsOn(this,
-                orderBook.totalSellQuantityByShareholder(order.getShareholder()) +
-                stopOrderBook.totalSellQuantityByShareholder(order.getShareholder())  - order.getQuantity() + updateOrderRq.getQuantity()))
+        if (!shareholderHasEnoughPosition(updateOrderRq, order.getShareholder(), updateOrderRq.getQuantity() - order.getQuantity()))
             return MatchResult.notEnoughPositions();
 
         boolean losesPriority = order.isQuantityIncreased(updateOrderRq.getQuantity())
@@ -178,10 +175,10 @@ public class Security {
         return new CustomPair(openingPrice, tradeableQuantity);
     }
 
-    private boolean shareholderHasEnoughPosition(EnterOrderRq req, Shareholder shareholder) {
+    private boolean shareholderHasEnoughPosition(EnterOrderRq req, Shareholder shareholder, int newQuantity) {
         if (req.getSide() == Side.SELL &&
                 !shareholder.hasEnoughPositionsOn(this,
-                        totalSellQuantityByShareholderInQueue(shareholder) +  req.getQuantity()))
+                        totalSellQuantityByShareholderInQueue(shareholder) + newQuantity))
             return false;
         return true;
     }
