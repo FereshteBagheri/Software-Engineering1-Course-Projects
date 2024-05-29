@@ -104,4 +104,57 @@ public class OrderBook {
         }
         return orders;
     }
+
+    public CustomPair TradeableQuantityBuyPrice(int buyPrice, int lastTradePrice, int maxTradeableQuantityBuyPrice) {
+        int maxFulfilledSellQuantityByBuyPrice = 0;
+        int nearestSellPrice = -1000000;
+
+        for (Order sellOrder : sellQueue) {
+            if (sellOrder.getPrice() <= buyPrice) {
+                if (maxFulfilledSellQuantityByBuyPrice < maxTradeableQuantityBuyPrice ||
+                        Math.abs(lastTradePrice - nearestSellPrice) > Math.abs(lastTradePrice - sellOrder.getPrice())) {
+                    nearestSellPrice = sellOrder.getPrice();
+                }
+                maxFulfilledSellQuantityByBuyPrice += sellOrder.getTotalQuantity();
+            } else {
+                break;
+            }
+        }
+
+        return new CustomPair(maxFulfilledSellQuantityByBuyPrice, nearestSellPrice);
+    }
+
+    public CustomPair findOpeningPrice(int lastTradePrice) {
+        int openingPrice = 0;
+        int tradeableQuantity = 0;
+        int maxFulfilledSellPriceByBuy = 0;
+        int maxTradeableQuantityBuyPrice = 0;
+
+        for (Order buyOrder : buyQueue) {
+            maxTradeableQuantityBuyPrice += buyOrder.getTotalQuantity();
+            CustomPair pair = TradeableQuantityBuyPrice(buyOrder.getPrice(), lastTradePrice, maxTradeableQuantityBuyPrice);
+            int maxSellQuantityForBuyPrice = pair.getFirst();
+            int exchangedQuantityValue = Math.min(maxSellQuantityForBuyPrice, maxTradeableQuantityBuyPrice);
+            int sellPrice = pair.getSecond();
+            if (exchangedQuantityValue > tradeableQuantity){
+                openingPrice = buyOrder.getPrice();
+                tradeableQuantity = exchangedQuantityValue;
+                maxFulfilledSellPriceByBuy = sellPrice;
+            }else if (exchangedQuantityValue == tradeableQuantity) {
+                if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - buyOrder.getPrice()))
+                    openingPrice = buyOrder.getPrice();
+                if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - sellPrice))
+                    maxFulfilledSellPriceByBuy = sellPrice;
+            }
+        }
+        if (openingPrice >= lastTradePrice && lastTradePrice >= maxFulfilledSellPriceByBuy)
+            openingPrice = lastTradePrice;
+        else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxFulfilledSellPriceByBuy))
+            openingPrice = maxFulfilledSellPriceByBuy;
+
+        if (tradeableQuantity == 0)
+            openingPrice = 0;
+        return new CustomPair(openingPrice, tradeableQuantity);
+    }
+
 }
