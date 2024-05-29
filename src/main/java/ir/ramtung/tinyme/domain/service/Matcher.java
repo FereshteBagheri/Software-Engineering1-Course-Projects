@@ -19,12 +19,12 @@ public abstract class Matcher {
     public abstract MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity);
 
     public MatchResult execute(Order order) {
-        int previous_quantity = order.getQuantity();
+        int previousQuantity = order.getQuantity();
         MatchResult result = match(order);
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
 
-        MatchResult result2 = addOrdertoOrderBook(result.remainder(), result.trades(), previous_quantity);
+        MatchResult result2 = addOrdertoOrderBook(result.remainder(), result.trades(), previousQuantity);
         if(result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
             result = result2;
         if (result.outcome() != MatchingOutcome.EXECUTED)
