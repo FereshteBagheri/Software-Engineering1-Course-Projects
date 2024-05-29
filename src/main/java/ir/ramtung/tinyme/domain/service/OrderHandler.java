@@ -21,7 +21,7 @@ public class OrderHandler extends ReqHandler {
 
     BrokerRepository brokerRepository;
     ShareholderRepository shareholderRepository;
-
+    SecurityRepository securityRepository;
     public OrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository, ShareholderRepository shareholderRepository,
                         EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher) {
         this.securityRepository = securityRepository;
