@@ -9,6 +9,7 @@ import ir.ramtung.tinyme.messaging.event.TradeEvent;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
+import ir.ramtung.tinyme.messaging.request.Request;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +25,13 @@ public class ChangeMatchingStateHandler extends ReqHandler {
     }
 
     @Override
-    protected  void validateRequest(ChangeMatchingStateRq request){
-        try {
+    protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
+        eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
+    }
+
+    @Override
+    protected  void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException{
             validateSecurity(request.getSecurityIsin());
-        }
-        catch (InvalidRequestException ex){
-            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
-        }
     };
 
     @Override

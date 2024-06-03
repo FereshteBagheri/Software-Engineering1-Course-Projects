@@ -15,8 +15,8 @@ public abstract class ReqHandler {
     protected void validateRequest(EnterOrderRq request) throws InvalidRequestException{};
     protected void validateRequest(DeleteOrderRq request) throws InvalidRequestException{};
     protected void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException{};
-    protected void processRequest(EnterOrderRq request)throws InvalidRequestException{};
-    protected void processRequest(DeleteOrderRq request)throws InvalidRequestException{};
+    protected void processRequest(EnterOrderRq request) throws InvalidRequestException{};
+    protected void processRequest(DeleteOrderRq request) throws InvalidRequestException{};
     protected void processRequest(ChangeMatchingStateRq request){};
 
     private  void validateRequest(Request request) throws InvalidRequestException{   if (request instanceof EnterOrderRq) {
