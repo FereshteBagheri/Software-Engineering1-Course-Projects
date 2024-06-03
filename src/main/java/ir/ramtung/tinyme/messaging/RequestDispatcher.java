@@ -22,9 +22,9 @@ public class RequestDispatcher {
     }
 
     @JmsListener(destination = "${requestQueue}", selector = "_type='ir.ramtung.tinyme.messaging.request.EnterOrderRq'")
-    public void receiveEnterOrderRq(EnterOrderRq enterOrderRq) {
+    public void receiveEnterOrderRq(EnterOrderRq enterOrderRq)  {
         log.info("Received message: " + enterOrderRq);
-        orderHandler.handleEnterOrder(enterOrderRq);
+        orderHandler.handleRequest(enterOrderRq);
     }
 
     @JmsListener(destination = "${requestQueue}", selector = "_type='ir.ramtung.tinyme.messaging.request.DeleteOrderRq'")

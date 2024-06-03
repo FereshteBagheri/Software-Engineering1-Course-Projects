@@ -15,10 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeleteOrderRq extends Request {
-    private long requestId;
-    private String securityIsin;
     private Side side;
-    private long orderId;
+
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime entryTime;

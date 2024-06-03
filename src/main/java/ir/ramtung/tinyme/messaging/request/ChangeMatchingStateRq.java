@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ChangeMatchingStateRq extends Request {
-    private String securityIsin;
+    protected String securityIsin;
     private MatchingState targetState;
 }

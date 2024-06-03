@@ -14,9 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class EnterOrderRq extends Request {
     private OrderEntryType requestType;
-    private long requestId;
-    private String securityIsin;
-    private long orderId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime entryTime;

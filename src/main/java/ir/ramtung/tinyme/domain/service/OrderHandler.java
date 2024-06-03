@@ -32,17 +32,25 @@ public class OrderHandler extends ReqHandler {
         this.auctionMatcher = auctionMatcher;
     }
 
-    public void handleEnterOrder(EnterOrderRq enterOrderRq) {
-        try {
-            validateEnterOrderRq(enterOrderRq);
+    @Override
+    protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
+        eventPublisher.publish(new OrderRejectedEvent(request.getRequestId(), request.getOrderId(), ex.getReasons()));
+    }
+
+    protected void validateRequest(EnterOrderRq request) throws InvalidRequestException{
+        validateEnterOrderRq(request);
+        validateAuctionStateRules(request, securityRepository.findSecurityByIsin(request.getSecurityIsin()));
+    };
+
+    @Override
+    public void processRequest(EnterOrderRq enterOrderRq) throws InvalidRequestException {
             Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
             Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
             Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
-            validateAuctionStateRules(enterOrderRq, security);
 
             Matcher matcher = (security.getState() == MatchingState.AUCTION) ? auctionMatcher : continuousMatcher;
-
             MatchResult matchResult;
+
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 matchResult = security.newOrder(enterOrderRq, broker, shareholder, matcher);
             else
@@ -53,9 +61,6 @@ public class OrderHandler extends ReqHandler {
                 matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice());
 
             publishOpenPriceEvent(security);
-        } catch (InvalidRequestException ex) {
-            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
-        }
     }
 
     public void handleDeleteOrder(DeleteOrderRq deleteOrderRq) {

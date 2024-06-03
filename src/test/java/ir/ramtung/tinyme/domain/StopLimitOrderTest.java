@@ -6,7 +6,6 @@ import ir.ramtung.tinyme.messaging.event.*;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import ir.ramtung.tinyme.messaging.EventPublisher;
-import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
@@ -109,7 +108,7 @@ public class StopLimitOrderTest {
         int price = 10000;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 20000,
                 price, 2, 1, 0, 0, stopPrice));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
@@ -133,7 +132,7 @@ public class StopLimitOrderTest {
         int price = 10000;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 200000,
                 price, 2, 1, 0, 0, stopPrice));
 
@@ -157,7 +156,7 @@ public class StopLimitOrderTest {
         int price = 10000;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
 
@@ -180,7 +179,7 @@ public class StopLimitOrderTest {
         int price = 10000;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 2,
                 price, 2, 1, 0, 0, stopPrice));
 
@@ -195,7 +194,7 @@ public class StopLimitOrderTest {
         int price = 15500;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 2,
                 price, 2, 1, 0, 0, stopPrice));
 
@@ -212,7 +211,7 @@ public class StopLimitOrderTest {
         int stopPrice = 14000;
         int price = 15800;
         long previous_credit = broker1.getCredit();
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 400,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -231,7 +230,7 @@ public class StopLimitOrderTest {
         long broker1_previous_credit = broker1.getCredit();
         long broker2_previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 400,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -251,7 +250,7 @@ public class StopLimitOrderTest {
         int price = 15750;
         long previous_credit = broker1.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 20,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -269,7 +268,7 @@ public class StopLimitOrderTest {
         int price = 15700;
         long previous_credit = broker1.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 400,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -287,7 +286,7 @@ public class StopLimitOrderTest {
         int price = 15500;
         long previous_credit = broker1.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 324,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -305,7 +304,7 @@ public class StopLimitOrderTest {
         int stopPrice = 16500;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 15, LocalDateTime.now(), Side.BUY, newQuantity,
                 15400, 2, 1, 0, 0, stopPrice));
 
@@ -326,7 +325,7 @@ public class StopLimitOrderTest {
         int stopPrice = 16500;
         long previous_credit = broker2.getCredit();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 15, LocalDateTime.now(), Side.BUY, 1000,
                 newPrice, 2, 1, 0, 0, stopPrice));
 
@@ -347,7 +346,7 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         //check the number of positions stays the same as before
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 16, LocalDateTime.now(), Side.SELL, newQuantity,
                 15800, 2, 1, 0, 0, stopPrice));
 
@@ -366,7 +365,7 @@ public class StopLimitOrderTest {
         int stopPrice = -15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 20000,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -386,7 +385,7 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 20000,
                 price, 1, 1, 400, 0, stopPrice));
 
@@ -406,7 +405,7 @@ public class StopLimitOrderTest {
         int stopPrice = -15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 20000,
                 price, 1, 1, 0, 0, stopPrice));
 
@@ -426,7 +425,7 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 20000,
                 price, 1, 1, 400, 0, stopPrice));
 
@@ -446,7 +445,7 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.BUY, 20000,
                 price, 1, 1, 0, 100, stopPrice));
 
@@ -466,7 +465,7 @@ public class StopLimitOrderTest {
         int stopPrice = 15600;
         int price = 10000;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC",
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC",
                 21, LocalDateTime.now(), Side.SELL, 20000,
                 price, 1, 1, 0, 100, stopPrice));
 
@@ -486,7 +485,7 @@ public class StopLimitOrderTest {
         Order newOrder = new Order(21, security, Side.BUY, 50, 14550, broker1, shareholder);
         orderBook.enqueue(newOrder);
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1,"ABC"
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,"ABC"
                 , 22, LocalDateTime.now(), Side.SELL, 2368,
                 14550, 1, 1, 0, 0, 0));
 
@@ -505,7 +504,7 @@ public class StopLimitOrderTest {
         long valid_credit = broker1.getCredit() + (stopOrderTest.getQuantity() - newQuantity)
                 * stopOrderTest.getPrice();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 orderId, LocalDateTime.now(), Side.BUY, newQuantity,
                 15800, 1, 1, 0, 0, 16300));
 
@@ -522,7 +521,7 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 orderId, LocalDateTime.now(), Side.BUY, 300,
                 15800, 1, 1, 0, 0, newStopPrice));
         
@@ -544,7 +543,7 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         LinkedList<StopLimitOrder> valid_buyQueue = new LinkedList<>();
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 orderId, LocalDateTime.now(), Side.BUY, 43,
                 15500, 1, 1, 0, 0, newStopPrice));
         
@@ -564,7 +563,7 @@ public class StopLimitOrderTest {
     void update_stop_limit_order_causes_activation_and_is_partially_matched(){
         long valid_credit_broker1 = broker1.getCredit() + 300*15800 - 350*15800 - 50*15805;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC",
                 11, LocalDateTime.now(), Side.BUY, 400,
                 15805, 1, 1, 0, 0, 15000));
 
@@ -578,7 +577,7 @@ public class StopLimitOrderTest {
     void update_stop_limit_order_causes_activation_and_is_fully_matched(){
         long valid_credit_broker1 = broker1.getCredit() + 300*15800 - 300*15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC",
                 11, LocalDateTime.now(), Side.BUY, 300,
                 15805, 1, 1, 0, 0, 15000));
 
@@ -592,14 +591,14 @@ public class StopLimitOrderTest {
     void update_stop_limit_order_activates_some_other_orders_that_not_match(){
         long valid_credit = broker1.getCredit() + 300*15800 - 300*15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 12, LocalDateTime.now(), Side.BUY, 43,
                 15500, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
         verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC",
                 11, LocalDateTime.now(), Side.BUY, 300,
                 15800, 1, 1, 0, 0, 15000));
 
@@ -620,14 +619,14 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit + 43 * 15500 - 60* 15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 12, LocalDateTime.now(), Side.BUY, 60,
                 15800, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
         verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC",
                 11, LocalDateTime.now(), Side.BUY, 300,
                 15800, 1, 1, 0, 0, 15000));
 
@@ -647,14 +646,14 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit - 43 * 300;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                 12, LocalDateTime.now(), Side.BUY, 43,
                 15800, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
         verify(eventPublisher, never()).publish(new OrderActivatedEvent(1, 12));
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC",
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC",
                 11, LocalDateTime.now(), Side.BUY, 300,
                 15800, 1, 1, 0, 0, 15000));
 
@@ -674,7 +673,7 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit + 43 * 15500 - 43* 15800;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
                 15800, 1, 1, 0, 0, 16350));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
@@ -687,7 +686,7 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit - 7* 15500;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 50,
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 50,
                 15500, 1, 1, 0, 0, 16350));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
@@ -700,7 +699,7 @@ public class StopLimitOrderTest {
         long previous_credit = broker1.getCredit();
         long valid_credit = previous_credit;
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 12, LocalDateTime.now(), Side.BUY, 43,
                 15500, 1, 1, 0, 0, 15800));
 
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 12));
@@ -713,7 +712,7 @@ public class StopLimitOrderTest {
         int orderId = 12;
         int newStopPrice = 14370;
 
-         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC",
+         orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC",
                  orderId, LocalDateTime.now(), Side.BUY, 43,
                  15500, 1, 1, 0, 0, newStopPrice));
 
@@ -723,10 +722,10 @@ public class StopLimitOrderTest {
 
     @Test
     void update_stop_price_after_activation_is_rejected(){
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 400, 15800, 1, shareholder.getShareholderId(), 0, 0, 14000));
+        orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 400, 15800, 1, shareholder.getShareholderId(), 0, 0, 14000));
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(50);
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 26, LocalDateTime.now(), Side.BUY, 50, 15800, 1, shareholder.getShareholderId(), 0, 0, 15000));
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(2, "ABC", 26, LocalDateTime.now(), Side.BUY, 50, 15800, 1, shareholder.getShareholderId(), 0, 0, 15000));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();

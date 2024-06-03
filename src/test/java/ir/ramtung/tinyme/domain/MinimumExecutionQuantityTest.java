@@ -119,7 +119,7 @@ public class MinimumExecutionQuantityTest {
     void new_order_req_with_minimum_execution_quantity_enters_orderBook() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15800, 1, 1, 0, 10, 0);
-        assertThatNoException().isThrownBy(() -> orderHandler.handleEnterOrder(newReq));
+        assertThatNoException().isThrownBy(() -> orderHandler.handleRequest(newReq));
         assertThat(orderBook.getBuyQueue().peek().getOrderId()).isEqualTo(11);
         assertThat(orderBook.getBuyQueue().peek().getQuantity()).isEqualTo(140);
     }
@@ -128,7 +128,7 @@ public class MinimumExecutionQuantityTest {
     void new_order_req_with_minimum_execution_quantity_is_rejected() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15800, 1, 1, 0, 400, 0);
-        assertThatNoException().isThrownBy(() -> orderHandler.handleEnterOrder(newReq));
+        assertThatNoException().isThrownBy(() -> orderHandler.handleRequest(newReq));
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
         assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
         assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
@@ -138,7 +138,7 @@ public class MinimumExecutionQuantityTest {
     void validate_negative_minimum_execution_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, -10, 0);
-        orderHandler.handleEnterOrder(newReq);
+        orderHandler.handleRequest(newReq);
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
@@ -149,7 +149,7 @@ public class MinimumExecutionQuantityTest {
     void validate_minimum_execution_quantity_greater_than_total_quantity_fails() {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 500, 0);
-        orderHandler.handleEnterOrder(newReq);
+        orderHandler.handleRequest(newReq);
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
@@ -269,7 +269,7 @@ public class MinimumExecutionQuantityTest {
         assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
                 15700, 1, 1, 0, 300, 0);
-        orderHandler.handleEnterOrder(updateReq);
+        orderHandler.handleRequest(updateReq);
         assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         assertThat(orderBook.findByOrderId(Side.SELL, 11).getQuantity()).isEqualTo(600);
     }
@@ -284,7 +284,7 @@ public class MinimumExecutionQuantityTest {
         assertThat(orderBook.getSellQueue().peek().getOrderId()).isEqualTo(11);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
                 15900, 1, 1, 0, 300, 0);
-        orderHandler.handleEnterOrder(updateReq);
+        orderHandler.handleRequest(updateReq);
         assertThat(orderBook.findByOrderId(Side.SELL, 11).getQuantity()).isEqualTo(600);
     }
 
@@ -298,7 +298,7 @@ public class MinimumExecutionQuantityTest {
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 50,
                 15800, 1, 1, 0, 300, 0);
 
-        orderHandler.handleEnterOrder(updateReq);
+        orderHandler.handleRequest(updateReq);
         assertThat(new_order.getQuantity()).isEqualTo(0);
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
     }
@@ -313,7 +313,7 @@ public class MinimumExecutionQuantityTest {
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.BUY, 450,
                 15800, 1, 1, 0, 300, 0);
 
-        orderHandler.handleEnterOrder(updateReq);
+        orderHandler.handleRequest(updateReq);
         assertThat(new_order.getQuantity()).isEqualTo(100);
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isNotEqualTo(null);
     }
@@ -326,7 +326,7 @@ public class MinimumExecutionQuantityTest {
         orderBook.enqueue(new_order);
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 11, LocalDateTime.now(), Side.SELL, 600,
                 15700, 1, 1, 0, 400, 0);
-        orderHandler.handleEnterOrder(updateReq);
+        orderHandler.handleRequest(updateReq);
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
