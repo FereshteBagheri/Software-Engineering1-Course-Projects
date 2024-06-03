@@ -36,6 +36,6 @@ public class RequestDispatcher {
     @JmsListener(destination = "${requestQueue}", selector = "_type='ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq'")
     public void receiveChangeMatchingSateRq(ChangeMatchingStateRq changeMatchingStateRq) {
         log.info("Received message: " + changeMatchingStateRq);
-        changeMatchingStateHandler.handleChangeMatchingStateRq(changeMatchingStateRq);
+        changeMatchingStateHandler.handleRequest(changeMatchingStateRq);
     }
 }

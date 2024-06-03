@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-public class EnterOrderRq {
+public class EnterOrderRq extends Request {
     private OrderEntryType requestType;
     private long requestId;
     private String securityIsin;

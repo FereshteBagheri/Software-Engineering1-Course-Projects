@@ -137,7 +137,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_new_sell_order_enters() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15820, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
@@ -146,7 +146,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_new_iceberg_sell_order_enters() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 100, 15800, 2, shareholder.getShareholderId(), 10, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
@@ -155,7 +155,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_sell_order_is_updated() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 9, LocalDateTime.now(), Side.SELL, 50, 15400, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify (eventPublisher). publish(new OrderUpdatedEvent(1, 9));
@@ -164,7 +164,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_sell_order_is_deleted() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 9));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 9));
@@ -175,7 +175,7 @@ public class OrderHandlerInAuctionTest {
     @Test
     void openingPrice_is_published_when_iceberg_sell_order_is_deleted() {
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 100, 15800, 2, shareholder.getShareholderId(), 10, 0, 0));
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));
@@ -194,7 +194,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_new_iceberg_buy_order_enters() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 100, 15800, 1, shareholder.getShareholderId(), 10, 0, 0));
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 892));
@@ -203,7 +203,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_buy_order_is_updated() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 433, 16000, 1, shareholder.getShareholderId(), 0, 0, 0));
         verify (eventPublisher). publish(new OrderUpdatedEvent(1, 1));
@@ -212,7 +212,7 @@ public class OrderHandlerInAuctionTest {
 
     @Test
     void openingPrice_is_published_when_buy_order_is_deleted() {
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 3));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 3));
@@ -223,7 +223,7 @@ public class OrderHandlerInAuctionTest {
     @Test
     void openingPrice_is_published_when_iceberg_buy_order_is_deleted() {
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 40, 15700, 1, shareholder.getShareholderId(), 10, 0, 0));
-        stateHandler.handleChangeMatchingStateRq(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));

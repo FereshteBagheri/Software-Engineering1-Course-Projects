@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteOrderRq {
+public class DeleteOrderRq extends Request {
     private long requestId;
     private String securityIsin;
     private Side side;

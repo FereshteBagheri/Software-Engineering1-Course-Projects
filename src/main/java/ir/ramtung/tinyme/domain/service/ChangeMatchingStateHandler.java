@@ -23,12 +23,20 @@ public class ChangeMatchingStateHandler extends ReqHandler {
         this.auctionMatcher = auctionMatcher;
     }
 
-
-    public void handleChangeMatchingStateRq(ChangeMatchingStateRq changeMatchingStateRq) {
+    @Override
+    protected  void validateRequest(ChangeMatchingStateRq request){
         try {
-            validateSecurity(changeMatchingStateRq.getSecurityIsin());
-            Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
-            MatchingState target = changeMatchingStateRq.getTargetState();
+            validateSecurity(request.getSecurityIsin());
+        }
+        catch (InvalidRequestException ex){
+            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
+        }
+    };
+
+    @Override
+    protected void processRequest(ChangeMatchingStateRq request){
+            Security security = securityRepository.findSecurityByIsin(request.getSecurityIsin());
+            MatchingState target = request.getTargetState();
             MatchResult result = null;
 
             if (security.getState() == MatchingState.AUCTION)
@@ -39,11 +47,7 @@ public class ChangeMatchingStateHandler extends ReqHandler {
 
             if (result != null && !result.trades().isEmpty())
                 activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
-
-        } catch (InvalidRequestException ex) {
-            eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
-        }
-    }
+    };
 
     private void validateSecurity(String isin) throws InvalidRequestException {
         Security security = securityRepository.findSecurityByIsin(isin);
@@ -77,3 +81,4 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
     }
 }
+
