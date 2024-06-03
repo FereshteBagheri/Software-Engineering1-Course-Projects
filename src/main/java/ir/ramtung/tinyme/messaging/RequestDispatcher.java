@@ -30,7 +30,7 @@ public class RequestDispatcher {
     @JmsListener(destination = "${requestQueue}", selector = "_type='ir.ramtung.tinyme.messaging.request.DeleteOrderRq'")
     public void receiveDeleteOrderRq(DeleteOrderRq deleteOrderRq) {
         log.info("Received message: " + deleteOrderRq);
-        orderHandler.handleDeleteOrder(deleteOrderRq);
+        orderHandler.handleRequest(deleteOrderRq);
     }
 
     @JmsListener(destination = "${requestQueue}", selector = "_type='ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq'")

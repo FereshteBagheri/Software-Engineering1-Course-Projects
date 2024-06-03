@@ -236,7 +236,7 @@ public class OrderHandlerTest {
         Order queuedOrder = new Order(200, security, Side.BUY, 1000, 15500, buyBroker, shareholder);
         security.getOrderBook().enqueue(someOrder);
         security.getOrderBook().enqueue(queuedOrder);
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1, security.getIsin(), Side.BUY, 200));
+        orderHandler.handleRequest(new DeleteOrderRq(1, security.getIsin(), Side.BUY, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(1, 200));
         assertThat(buyBroker.getCredit()).isEqualTo(1_000_000 + 1000*15500);
     }
@@ -249,7 +249,7 @@ public class OrderHandlerTest {
         Order queuedOrder = new Order(200, security, Side.SELL, 1000, 15500, sellBroker, shareholder);
         security.getOrderBook().enqueue(someOrder);
         security.getOrderBook().enqueue(queuedOrder);
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1, security.getIsin(), Side.SELL, 200));
+        orderHandler.handleRequest(new DeleteOrderRq(1, security.getIsin(), Side.SELL, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(1, 200));
         assertThat(sellBroker.getCredit()).isEqualTo(1_000_000);
     }
@@ -261,7 +261,7 @@ public class OrderHandlerTest {
         brokerRepository.addBroker(buyBroker);
         Order queuedOrder = new Order(200, security, Side.BUY, 1000, 15500, buyBroker, shareholder);
         security.getOrderBook().enqueue(queuedOrder);
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1, "ABC", Side.SELL, 100));
+        orderHandler.handleRequest(new DeleteOrderRq(1, "ABC", Side.SELL, 100));
         verify(eventPublisher).publish(new OrderRejectedEvent(1, 100, List.of(Message.ORDER_ID_NOT_FOUND)));
         assertThat(buyBroker.getCredit()).isEqualTo(1_000_000);
     }
@@ -270,7 +270,7 @@ public class OrderHandlerTest {
     void invalid_delete_order_with_non_existing_security() {
         Order queuedOrder = new Order(200, security, Side.BUY, 1000, 15500, broker1, shareholder);
         security.getOrderBook().enqueue(queuedOrder);
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1, "XXX", Side.SELL, 200));
+        orderHandler.handleRequest(new DeleteOrderRq(1, "XXX", Side.SELL, 200));
         verify(eventPublisher).publish(new OrderRejectedEvent(1, 200, List.of(Message.UNKNOWN_SECURITY_ISIN)));
     }
 

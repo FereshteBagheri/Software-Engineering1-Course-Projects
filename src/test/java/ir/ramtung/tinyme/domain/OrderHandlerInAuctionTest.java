@@ -166,7 +166,7 @@ public class OrderHandlerInAuctionTest {
     void openingPrice_is_published_when_sell_order_is_deleted() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 9));
+        orderHandler.handleRequest(new DeleteOrderRq(2,"ABC", Side.SELL, 9));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 9));
         assertThat(orderBook.findByOrderId(Side.SELL, 9)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 700));
@@ -177,7 +177,7 @@ public class OrderHandlerInAuctionTest {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 100, 15800, 2, shareholder.getShareholderId(), 10, 0, 0));
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.SELL, 200));
+        orderHandler.handleRequest(new DeleteOrderRq(2,"ABC", Side.SELL, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));
         assertThat(orderBook.findByOrderId(Side.SELL, 200)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
@@ -214,7 +214,7 @@ public class OrderHandlerInAuctionTest {
     void openingPrice_is_published_when_buy_order_is_deleted() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 3));
+        orderHandler.handleRequest(new DeleteOrderRq(2,"ABC", Side.BUY, 3));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 3));
         assertThat(orderBook.findByOrderId(Side.BUY, 3)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15600, 635));
@@ -225,7 +225,7 @@ public class OrderHandlerInAuctionTest {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 40, 15700, 1, shareholder.getShareholderId(), 10, 0, 0));
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(2,"ABC", Side.BUY, 200));
+        orderHandler.handleRequest(new DeleteOrderRq(2,"ABC", Side.BUY, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 200));
         assertThat(orderBook.findByOrderId(Side.BUY, 200)).isEqualTo(null);
         verify(eventPublisher).publish(new OpeningPriceEvent("ABC", 15800, 792));
@@ -263,7 +263,7 @@ public class OrderHandlerInAuctionTest {
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(50);
         security.setMatchingState(MatchingState.AUCTION);
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
+        orderHandler.handleRequest(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
         verify(eventPublisher).publish(new OrderDeletedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
     }
@@ -287,7 +287,7 @@ public class OrderHandlerInAuctionTest {
         assertThat(orderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(50);
         security.setMatchingState(MatchingState.AUCTION);
         setupAuctionOrders();
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
+        orderHandler.handleRequest(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
         verify(eventPublisher).publish(new OrderDeletedEvent(1, 26));
         assertThat(orderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
     }
@@ -311,7 +311,7 @@ public class OrderHandlerInAuctionTest {
         verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26).getQuantity()).isEqualTo(200);
         security.setMatchingState(MatchingState.AUCTION);
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
+        orderHandler.handleRequest(new DeleteOrderRq(1,"ABC", Side.BUY, 26));
 
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());

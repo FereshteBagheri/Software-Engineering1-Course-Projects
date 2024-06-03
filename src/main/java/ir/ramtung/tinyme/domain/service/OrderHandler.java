@@ -63,17 +63,18 @@ public class OrderHandler extends ReqHandler {
             publishOpenPriceEvent(security);
     }
 
-    public void handleDeleteOrder(DeleteOrderRq deleteOrderRq) {
-        try {
-            validateDeleteOrderRq(deleteOrderRq);
-            Security security = securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin());
-            security.deleteOrder(deleteOrderRq);
-            eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
-            publishOpenPriceEvent(security);
-        } catch (InvalidRequestException ex) {
-            eventPublisher.publish(new OrderRejectedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId(), ex.getReasons()));
-        }
-    }
+    @Override
+    protected void validateRequest(DeleteOrderRq request) throws InvalidRequestException{
+        validateDeleteOrderRq(request);
+    };
+
+    @Override
+    protected void processRequest(DeleteOrderRq request)throws InvalidRequestException{
+        Security security = securityRepository.findSecurityByIsin(request.getSecurityIsin());
+        security.deleteOrder(request);
+        eventPublisher.publish(new OrderDeletedEvent(request.getRequestId(), request.getOrderId()));
+        publishOpenPriceEvent(security);
+    };
 
     private void validateEnterOrderRq(EnterOrderRq enterOrderRq) throws InvalidRequestException {
         List<String> errors = new LinkedList<>();
