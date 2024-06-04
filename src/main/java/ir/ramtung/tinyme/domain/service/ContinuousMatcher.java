@@ -70,7 +70,7 @@ public class ContinuousMatcher extends Matcher{
     }
 
 
-    public MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+    public MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
         if (remainder.getQuantity() > 0) {
             if (!remainder.isMinimumQuantityExecuted() &&
                     (remainder.getQuantity() > (previousQuantity - remainder.getMinimumExecutionQuantity()))){

@@ -69,7 +69,7 @@ public class AuctionMatcher extends Matcher {
             }
     }
 
-    public MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+    public MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
         if (remainder.getSide() == Side.BUY && !remainder.getBroker().hasEnoughCredit(remainder.getValue()))
             return MatchResult.notEnoughCredit();
 

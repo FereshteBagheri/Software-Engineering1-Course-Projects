@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public abstract class Matcher {
     public abstract MatchResult match(Order newOrder);
 
-    public abstract MatchResult addOrdertoOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity);
+    public abstract MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity);
 
     public MatchResult execute(Order order) {
         int previousQuantity = order.getQuantity();
@@ -24,7 +24,7 @@ public abstract class Matcher {
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
 
-        MatchResult result2 = addOrdertoOrderBook(result.remainder(), result.trades(), previousQuantity);
+        MatchResult result2 = addOrderToOrderBook(result.remainder(), result.trades(), previousQuantity);
         if(result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
             result = result2;
         if (result.outcome() != MatchingOutcome.EXECUTED)
