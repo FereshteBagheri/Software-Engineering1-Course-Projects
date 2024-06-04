@@ -2,7 +2,6 @@ package ir.ramtung.tinyme.domain.service;
 
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
-import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.SecurirtyStateChangeRejectedEvent;
 import ir.ramtung.tinyme.messaging.event.SecurityStateChangedEvent;
 import ir.ramtung.tinyme.messaging.event.TradeEvent;
@@ -17,22 +16,18 @@ import java.util.LinkedList;
 
 @Service
 public class ChangeMatchingStateHandler extends ReqHandler {
-    public ChangeMatchingStateHandler(SecurityRepository securityRepository, EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher) {
+    public ChangeMatchingStateHandler(SecurityRepository securityRepository, EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher, RequestControl requestControl) {
         this.securityRepository = securityRepository;
         this.eventPublisher = eventPublisher;
         this.continuousMatcher = continuousMatcher;
         this.auctionMatcher = auctionMatcher;
+        this.requestControl = requestControl;
     }
 
     @Override
     protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
         eventPublisher.publish(new SecurirtyStateChangeRejectedEvent(ex.getMessage()));
     }
-
-    @Override
-    protected  void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException{
-            validateSecurity(request.getSecurityIsin());
-    };
 
     @Override
     protected void processRequest(ChangeMatchingStateRq request){
@@ -49,12 +44,6 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             if (result != null && !result.trades().isEmpty())
                 activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
     };
-
-    private void validateSecurity(String isin) throws InvalidRequestException {
-        Security security = securityRepository.findSecurityByIsin(isin);
-        if (security == null)
-            throw new InvalidRequestException(Message.UNKNOWN_SECURITY_ISIN);
-    }
 
     private MatchResult openSecurity(Security security) {
         CustomPair pair = security.findOpeningPrice();

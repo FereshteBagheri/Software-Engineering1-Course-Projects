@@ -11,20 +11,19 @@ public abstract class ReqHandler {
     EventPublisher eventPublisher;
     ContinuousMatcher continuousMatcher;
     AuctionMatcher auctionMatcher;
+    RequestControl requestControl;
 
-    protected void validateRequest(EnterOrderRq request) throws InvalidRequestException{};
-    protected void validateRequest(DeleteOrderRq request) throws InvalidRequestException{};
-    protected void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException{};
     protected void processRequest(EnterOrderRq request) throws InvalidRequestException{};
     protected void processRequest(DeleteOrderRq request) throws InvalidRequestException{};
     protected void processRequest(ChangeMatchingStateRq request){};
+    protected void handleInvalidRequest(Request request,InvalidRequestException ex) {}
 
     private  void validateRequest(Request request) throws InvalidRequestException{   if (request instanceof EnterOrderRq) {
-        validateRequest((EnterOrderRq) request);
+        requestControl.validateRequest((EnterOrderRq) request);
     } else if (request instanceof DeleteOrderRq) {
-        validateRequest((DeleteOrderRq) request);
+        requestControl.validateRequest((DeleteOrderRq) request);
     } else if (request instanceof ChangeMatchingStateRq) {
-        validateRequest((ChangeMatchingStateRq) request);
+        requestControl.validateRequest((ChangeMatchingStateRq) request);
     }}
 
     private void processRequest(Request request)throws InvalidRequestException{    if (request instanceof EnterOrderRq) {
@@ -44,8 +43,5 @@ public abstract class ReqHandler {
         }
     }
 
-    protected void handleInvalidRequest(Request request,InvalidRequestException ex) {
-
-    }
 }
 

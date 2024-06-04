@@ -66,6 +66,9 @@ public class MatchingStateChangeTest {
     ChangeMatchingStateHandler stateHandler;
 
     @Autowired
+    RequestControl requestControl;
+
+    @Autowired
     private ContinuousMatcher continuousMatcher;
 
     @Autowired
