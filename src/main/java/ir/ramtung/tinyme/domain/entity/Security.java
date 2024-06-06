@@ -38,7 +38,7 @@ public class Security {
         Order order = findOrderByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
         validateDeleteOrderRequest(order);
         if (order.getSide() == Side.BUY)
-            order.getBroker().increaseCreditBy(order.getValue()); 
+            order.getBroker().increaseCreditBy(order.getValue());
         removeOrderByOrderId(order, deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
     }
 
@@ -51,7 +51,8 @@ public class Security {
 
         validateUpdateOrderRequest(order, updateOrderRq);
 
-        if (!shareholderHasEnoughPosition(updateOrderRq, order.getShareholder(), updateOrderRq.getQuantity() - order.getQuantity()))
+        if (!shareholderHasEnoughPosition(updateOrderRq, order.getShareholder(),
+                updateOrderRq.getQuantity() - order.getQuantity()))
             return MatchResult.notEnoughPositions();
 
         boolean losesPriority = hasLostPriority(order, updateOrderRq);
@@ -65,14 +66,14 @@ public class Security {
             if (updateOrderRq.getSide() == Side.BUY)
                 order.getBroker().decreaseCreditBy(order.getValue());
             return MatchResult.executed(null, List.of());
-        }
-        else
+        } else
             order.markAsNew();
 
         removeOrderByOrderId(order, updateOrderRq.getSide(), updateOrderRq.getOrderId());
 
         MatchResult matchResult = matcher.execute(order);
-        if (matchResult.outcome() != MatchingOutcome.EXECUTED && matchResult.outcome() != MatchingOutcome.NOT_ACTIVATED) {
+        if (matchResult.outcome() != MatchingOutcome.EXECUTED
+                && matchResult.outcome() != MatchingOutcome.NOT_ACTIVATED) {
             enqueueOrder(originalOrder);
             if (updateOrderRq.getSide() == Side.BUY)
                 originalOrder.getBroker().decreaseCreditBy(originalOrder.getValue());
@@ -84,7 +85,7 @@ public class Security {
         LinkedList<StopLimitOrder> activeOrders = new LinkedList<StopLimitOrder>();
         if (last_Trade_Price > this.lastTradePrice)
             activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.BUY);
-        else 
+        else
             activeOrders = stopOrderBook.findTriggeredOrders(last_Trade_Price, Side.SELL);
 
         return activeOrders;
@@ -116,7 +117,6 @@ public class Security {
         this.state = targetState;
     }
 
-
     public CustomPair findOpeningPrice() {
         return orderBook.findOpeningPrice(lastTradePrice);
     }
@@ -129,8 +129,9 @@ public class Security {
         return true;
     }
 
-    private int totalSellQuantityByShareholderInQueue(Shareholder shareholder){
-        return orderBook.totalSellQuantityByShareholder(shareholder) + stopOrderBook.totalSellQuantityByShareholder(shareholder);
+    private int totalSellQuantityByShareholderInQueue(Shareholder shareholder) {
+        return orderBook.totalSellQuantityByShareholder(shareholder)
+                + stopOrderBook.totalSellQuantityByShareholder(shareholder);
     }
 
     private Order createOrderFromRequest(EnterOrderRq request, Broker broker, Shareholder shareholder) {
@@ -178,7 +179,9 @@ public class Security {
     private boolean hasLostPriority(Order order, EnterOrderRq updateOrderRq) {
         return order.isQuantityIncreased(updateOrderRq.getQuantity())
                 || updateOrderRq.getPrice() != order.getPrice()
-                || ((order instanceof IcebergOrder icebergOrder) && (icebergOrder.getPeakSize() < updateOrderRq.getPeakSize()))
-                || ((order instanceof StopLimitOrder stopLimitOrder) && (stopLimitOrder.getStopPrice() != updateOrderRq.getStopPrice()));
+                || ((order instanceof IcebergOrder icebergOrder)
+                        && (icebergOrder.getPeakSize() < updateOrderRq.getPeakSize()))
+                || ((order instanceof StopLimitOrder stopLimitOrder)
+                        && (stopLimitOrder.getStopPrice() != updateOrderRq.getStopPrice()));
     }
 }

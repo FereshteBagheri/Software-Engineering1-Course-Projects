@@ -9,7 +9,9 @@ import java.util.ListIterator;
 
 @Service
 public class AuctionMatcher extends Matcher {
-    public MatchResult match(Order order) { return MatchResult.executed(order, new LinkedList<>());}
+    public MatchResult match(Order order) {
+        return MatchResult.executed(order, new LinkedList<>());
+    }
 
     public MatchResult match(LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int openingPrice) {
         LinkedList<Trade> trades = new LinkedList<>();
@@ -23,7 +25,7 @@ public class AuctionMatcher extends Matcher {
             adjustCredit(buyOrder, trade, openingPrice);
             trades.add(trade);
         }
-        
+
         updatePositionsFromTrades(trades);
         return MatchResult.executed(null, trades);
     }
@@ -56,20 +58,21 @@ public class AuctionMatcher extends Matcher {
             enqueueOpenOrder(icebergOrder, orders);
     }
 
-    private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders, LinkedList<Order> sellOrders, int tradeQuantity) {
+    private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders,
+            LinkedList<Order> sellOrders, int tradeQuantity) {
         if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
-                handleOrderCompletion(buyOrder, buyOrders);
-                handleOrderCompletion(sellOrder, sellOrders);
-            } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
-                buyOrder.decreaseQuantity(tradeQuantity);
-                handleOrderCompletion(sellOrder, sellOrders);
-            } else {
-                sellOrder.decreaseQuantity(tradeQuantity);
-                handleOrderCompletion(buyOrder, buyOrders);
-            }
+            handleOrderCompletion(buyOrder, buyOrders);
+            handleOrderCompletion(sellOrder, sellOrders);
+        } else if (buyOrder.getQuantity() > sellOrder.getQuantity()) {
+            buyOrder.decreaseQuantity(tradeQuantity);
+            handleOrderCompletion(sellOrder, sellOrders);
+        } else {
+            sellOrder.decreaseQuantity(tradeQuantity);
+            handleOrderCompletion(buyOrder, buyOrders);
+        }
     }
 
-    public MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+    public MatchResult addOrderToOrderBook(Order remainder, LinkedList<Trade> trades, int previousQuantity) {
         if (remainder.getSide() == Side.BUY && !remainder.getBroker().hasEnoughCredit(remainder.getValue()))
             return MatchResult.notEnoughCredit();
 

@@ -105,13 +105,15 @@ public class OrderBook {
         return orders;
     }
 
-    public CustomPair calculateTradeableQuantityAndSellPrice(int buyPrice, int lastTradePrice, int maxTradeableQuantityBuyPrice) {
+    public CustomPair calculateTradeableQuantityAndSellPrice(int buyPrice, int lastTradePrice,
+            int maxTradeableQuantityBuyPrice) {
         int maxFulfilledSellQuantity = 0;
         int nearestSellPrice = Integer.MIN_VALUE;
 
         for (Order sellOrder : sellQueue) {
             if (sellOrder.getPrice() <= buyPrice) {
-                if (shouldUpdateNearestSellPrice(maxFulfilledSellQuantity, maxTradeableQuantityBuyPrice, lastTradePrice, nearestSellPrice, sellOrder)) {
+                if (shouldUpdateNearestSellPrice(maxFulfilledSellQuantity, maxTradeableQuantityBuyPrice, lastTradePrice,
+                        nearestSellPrice, sellOrder)) {
                     nearestSellPrice = sellOrder.getPrice();
                 }
                 maxFulfilledSellQuantity += sellOrder.getTotalQuantity();
@@ -131,23 +133,25 @@ public class OrderBook {
 
         for (Order buyOrder : buyQueue) {
             maxTradeableQuantityBuyPrice += buyOrder.getTotalQuantity();
-            CustomPair tradeablePair = calculateTradeableQuantityAndSellPrice(buyOrder.getPrice(), lastTradePrice, maxTradeableQuantityBuyPrice);
-            
+            CustomPair tradeablePair = calculateTradeableQuantityAndSellPrice(buyOrder.getPrice(), lastTradePrice,
+                    maxTradeableQuantityBuyPrice);
+
             int maxSellQuantityForBuyPrice = tradeablePair.getFirst();
             int exchangedQuantityValue = Math.min(maxSellQuantityForBuyPrice, maxTradeableQuantityBuyPrice);
             int sellPrice = tradeablePair.getSecond();
-            
-            if (exchangedQuantityValue > tradeableQuantity){
+
+            if (exchangedQuantityValue > tradeableQuantity) {
                 openingPrice = buyOrder.getPrice();
                 tradeableQuantity = exchangedQuantityValue;
                 maxFulfilledSellPriceByBuy = sellPrice;
-            }else if (exchangedQuantityValue == tradeableQuantity) {
+            } else if (exchangedQuantityValue == tradeableQuantity) {
                 openingPrice = getOptimalOpeningPrice(lastTradePrice, openingPrice, buyOrder.getPrice());
                 maxFulfilledSellPriceByBuy = getOptimalOpeningPrice(lastTradePrice, openingPrice, sellPrice);
             }
         }
 
-        openingPrice = finalizeOpeningPrice(lastTradePrice, openingPrice, maxFulfilledSellPriceByBuy, tradeableQuantity);
+        openingPrice = finalizeOpeningPrice(lastTradePrice, openingPrice, maxFulfilledSellPriceByBuy,
+                tradeableQuantity);
 
         return new CustomPair(openingPrice, tradeableQuantity);
     }
@@ -159,11 +163,12 @@ public class OrderBook {
         return currentOpeningPrice;
     }
 
-    private int finalizeOpeningPrice(int lastTradePrice, int openingPrice, int maxFulfilledSellPriceByBuy, int tradeableQuantity) {
+    private int finalizeOpeningPrice(int lastTradePrice, int openingPrice, int maxFulfilledSellPriceByBuy,
+            int tradeableQuantity) {
         if (tradeableQuantity == 0) {
             return 0;
         }
-        
+
         if (openingPrice >= lastTradePrice && lastTradePrice >= maxFulfilledSellPriceByBuy) {
             return lastTradePrice;
         } else if (Math.abs(lastTradePrice - openingPrice) >= Math.abs(lastTradePrice - maxFulfilledSellPriceByBuy)) {
@@ -173,7 +178,8 @@ public class OrderBook {
         return openingPrice;
     }
 
-    private boolean shouldUpdateNearestSellPrice(int maxFulfilledSellQuantity, int maxTradeableQuantityBuyPrice, int lastTradePrice, int nearestSellPrice, Order sellOrder) {
+    private boolean shouldUpdateNearestSellPrice(int maxFulfilledSellQuantity, int maxTradeableQuantityBuyPrice,
+            int lastTradePrice, int nearestSellPrice, Order sellOrder) {
         return maxFulfilledSellQuantity < maxTradeableQuantityBuyPrice ||
                 Math.abs(lastTradePrice - nearestSellPrice) > Math.abs(lastTradePrice - sellOrder.getPrice());
     }

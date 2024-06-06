@@ -3,12 +3,11 @@ package ir.ramtung.tinyme.domain.service;
 import ir.ramtung.tinyme.domain.entity.*;
 import org.springframework.stereotype.Service;
 
-
 import java.util.LinkedList;
 import java.util.ListIterator;
 
 @Service
-public class ContinuousMatcher extends Matcher{
+public class ContinuousMatcher extends Matcher {
     public MatchResult match(Order newOrder) {
         OrderBook orderBook = newOrder.getSecurity().getOrderBook();
         LinkedList<Trade> trades = new LinkedList<>();
@@ -37,25 +36,23 @@ public class ContinuousMatcher extends Matcher{
 
             trade.increaseSellersCredit();
             trades.add(trade);
-            updateOrdersAfterTrade(newOrder, matchingOrder,  matchingOrder.getQuantity(), orderBook);
+            updateOrdersAfterTrade(newOrder, matchingOrder, matchingOrder.getQuantity(), orderBook);
         }
         return MatchResult.executed(newOrder, trades);
     }
 
-    private void rollbackBuy(Order newOrder, LinkedList<Trade> trades){
+    private void rollbackBuy(Order newOrder, LinkedList<Trade> trades) {
         newOrder.getBroker().increaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
-        trades.forEach(trade ->
-                trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
+        trades.forEach(trade -> trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
         ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
             newOrder.getSecurity().getOrderBook().restoreSellOrder(it.previous().getSell());
         }
     }
 
-    private void rollbackSell(Order newOrder, LinkedList<Trade> trades){
+    private void rollbackSell(Order newOrder, LinkedList<Trade> trades) {
         newOrder.getBroker().decreaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
-        trades.forEach(trade ->
-                trade.getBuy().getBroker().increaseCreditBy(trade.getTradedValue()));
+        trades.forEach(trade -> trade.getBuy().getBroker().increaseCreditBy(trade.getTradedValue()));
         ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
             newOrder.getSecurity().getOrderBook().restoreBuyOrder(it.previous().getBuy());
@@ -69,11 +66,10 @@ public class ContinuousMatcher extends Matcher{
             rollbackSell(newOrder, trades);
     }
 
-
-    public MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity) {
+    public MatchResult addOrderToOrderBook(Order remainder, LinkedList<Trade> trades, int previousQuantity) {
         if (remainder.getQuantity() > 0) {
             if (!remainder.isMinimumQuantityExecuted() &&
-                    (remainder.getQuantity() > (previousQuantity - remainder.getMinimumExecutionQuantity()))){
+                    (remainder.getQuantity() > (previousQuantity - remainder.getMinimumExecutionQuantity()))) {
                 rollbackTrades(remainder, trades);
                 return MatchResult.minimumNotMatched();
             }
@@ -94,7 +90,8 @@ public class ContinuousMatcher extends Matcher{
         return MatchResult.executed(remainder, trades);
     }
 
-    private void updateOrdersAfterTrade(Order newOrder, Order matchingOrder, int matchingQuantity, OrderBook orderBook) {
+    private void updateOrdersAfterTrade(Order newOrder, Order matchingOrder, int matchingQuantity,
+            OrderBook orderBook) {
         if (newOrder.getQuantity() >= matchingQuantity) {
             newOrder.decreaseQuantity(matchingQuantity);
             orderBook.removeFirst(matchingOrder.getSide());
@@ -104,7 +101,5 @@ public class ContinuousMatcher extends Matcher{
             newOrder.makeQuantityZero();
         }
     }
-
-
 
 }

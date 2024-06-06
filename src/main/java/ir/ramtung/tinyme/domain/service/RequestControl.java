@@ -19,13 +19,14 @@ public class RequestControl {
     BrokerRepository brokerRepository;
     ShareholderRepository shareholderRepository;
 
-    public RequestControl(SecurityRepository securityRepository, BrokerRepository brokerRepository, ShareholderRepository shareholderRepository){
+    public RequestControl(SecurityRepository securityRepository, BrokerRepository brokerRepository,
+            ShareholderRepository shareholderRepository) {
         this.securityRepository = securityRepository;
         this.brokerRepository = brokerRepository;
         this.shareholderRepository = shareholderRepository;
     }
 
-    protected  void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException{
+    protected void validateRequest(ChangeMatchingStateRq request) throws InvalidRequestException {
         validateSecurity(request.getSecurityIsin());
     };
 
@@ -35,7 +36,7 @@ public class RequestControl {
             throw new InvalidRequestException(Message.UNKNOWN_SECURITY_ISIN);
     }
 
-    protected void validateRequest(EnterOrderRq request) throws InvalidRequestException{
+    protected void validateRequest(EnterOrderRq request) throws InvalidRequestException {
         validateEnterOrderRq(request);
         validateAuctionStateRules(request, securityRepository.findSecurityByIsin(request.getSecurityIsin()));
     };
@@ -62,9 +63,11 @@ public class RequestControl {
             errors.add(Message.INVALID_STOP_PRICE);
         if (enterOrderRq.getStopPrice() != 0 && enterOrderRq.getMinimumExecutionQuantity() != 0)
             errors.add(Message.INVALID_STOP_LIMIT_ORDER_WITH_MIN_EXECUTION_QUANTITY);
-        if (enterOrderRq.getStopPrice() != 0 &&  enterOrderRq.getPeakSize() != 0)
+        if (enterOrderRq.getStopPrice() != 0 && enterOrderRq.getPeakSize() != 0)
             errors.add(Message.INVALID_STOP_LIMIT_ORDER_WITH_PEAKSIZE);
-        if (enterOrderRq.getMinimumExecutionQuantity() < 0 || (enterOrderRq.getMinimumExecutionQuantity() > enterOrderRq.getQuantity() && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER))
+        if (enterOrderRq.getMinimumExecutionQuantity() < 0
+                || (enterOrderRq.getMinimumExecutionQuantity() > enterOrderRq.getQuantity()
+                        && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER))
             errors.add(Message.INVALID_MINIMUM_EXECUTION_QUANTITY);
         if (enterOrderRq.getPeakSize() < 0 || enterOrderRq.getPeakSize() >= enterOrderRq.getQuantity())
             errors.add(Message.INVALID_PEAK_SIZE);
@@ -89,13 +92,15 @@ public class RequestControl {
             errors.add(Message.UNKNOWN_SHAREHOLDER_ID);
     }
 
-    private void validateAuctionStateRules(EnterOrderRq enterOrderRq, Security security) throws InvalidRequestException {
+    private void validateAuctionStateRules(EnterOrderRq enterOrderRq, Security security)
+            throws InvalidRequestException {
         if (security.getState() == MatchingState.AUCTION) {
-            if (enterOrderRq.getMinimumExecutionQuantity() > 0 && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
+            if (enterOrderRq.getMinimumExecutionQuantity() > 0
+                    && enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.MIN_EXECUTION_QUANTITY_IN_AUCTION);
-            if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType()==OrderEntryType.NEW_ORDER)
+            if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 throw new InvalidRequestException(Message.NEW_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
-            if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType()==OrderEntryType.UPDATE_ORDER)
+            if (enterOrderRq.getStopPrice() != 0 & enterOrderRq.getRequestType() == OrderEntryType.UPDATE_ORDER)
                 throw new InvalidRequestException(Message.UPDATE_STOP_ORDER_IS_NOT_ALLOWED_IN_AUCTION);
         }
     }
@@ -110,7 +115,7 @@ public class RequestControl {
             throw new InvalidRequestException(errors);
     }
 
-    protected void validateRequest(DeleteOrderRq request) throws InvalidRequestException{
+    protected void validateRequest(DeleteOrderRq request) throws InvalidRequestException {
         validateDeleteOrderRq(request);
     };
 

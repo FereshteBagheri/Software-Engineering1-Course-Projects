@@ -21,8 +21,11 @@ public class OrderHandler extends ReqHandler {
     BrokerRepository brokerRepository;
     ShareholderRepository shareholderRepository;
     SecurityRepository securityRepository;
-    public OrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository, ShareholderRepository shareholderRepository,
-                        EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher, RequestControl requestControl) {
+
+    public OrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository,
+            ShareholderRepository shareholderRepository,
+            EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher,
+            RequestControl requestControl) {
         this.securityRepository = securityRepository;
         this.brokerRepository = brokerRepository;
         this.shareholderRepository = shareholderRepository;
@@ -39,27 +42,28 @@ public class OrderHandler extends ReqHandler {
 
     @Override
     public void processRequest(EnterOrderRq enterOrderRq) throws InvalidRequestException {
-            Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
-            Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
-            Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
+        Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
+        Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
+        Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
 
-            Matcher matcher = (security.getState() == MatchingState.AUCTION) ? auctionMatcher : continuousMatcher;
-            MatchResult matchResult;
+        Matcher matcher = (security.getState() == MatchingState.AUCTION) ? auctionMatcher : continuousMatcher;
+        MatchResult matchResult;
 
-            if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
-                matchResult = security.newOrder(enterOrderRq, broker, shareholder, matcher);
-            else
-                matchResult = security.updateOrder(enterOrderRq, matcher);
+        if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
+            matchResult = security.newOrder(enterOrderRq, broker, shareholder, matcher);
+        else
+            matchResult = security.updateOrder(enterOrderRq, matcher);
 
-            publishEnterOrderReqEvents(matchResult, enterOrderRq);
-            if (!matchResult.trades().isEmpty())
-                matcher.executeTriggeredStopLimitOrders(security , eventPublisher, matchResult.trades().getLast().getPrice());
+        publishEnterOrderReqEvents(matchResult, enterOrderRq);
+        if (!matchResult.trades().isEmpty())
+            matcher.executeTriggeredStopLimitOrders(security, eventPublisher,
+                    matchResult.trades().getLast().getPrice());
 
-            publishOpenPriceEvent(security);
+        publishOpenPriceEvent(security);
     }
 
     @Override
-    protected void processRequest(DeleteOrderRq request)throws InvalidRequestException{
+    protected void processRequest(DeleteOrderRq request) throws InvalidRequestException {
         Security security = securityRepository.findSecurityByIsin(request.getSecurityIsin());
         security.deleteOrder(request);
         eventPublisher.publish(new OrderDeletedEvent(request.getRequestId(), request.getOrderId()));
@@ -68,15 +72,18 @@ public class OrderHandler extends ReqHandler {
 
     private void publishEnterOrderReqEvents(MatchResult matchResult, EnterOrderRq enterOrderRq) {
         if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
-            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                    List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
             return;
         }
         if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
-            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                    List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
             return;
         }
         if (matchResult.outcome() == MatchingOutcome.MINIMUM_NOT_MATCHED) {
-            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                    List.of(Message.MINIMUM_EXECUTION_QUANTITY_NOT_MATCHED)));
             return;
         }
 
@@ -88,11 +95,13 @@ public class OrderHandler extends ReqHandler {
         if (matchResult.outcome() == MatchingOutcome.NOT_ACTIVATED && enterOrderRq.getStopPrice() != 0)
             return;
 
-        if ((matchResult.outcome() == MatchingOutcome.EXECUTED && matchResult.remainder() != null)  && enterOrderRq.getStopPrice() != 0)
+        if ((matchResult.outcome() == MatchingOutcome.EXECUTED && matchResult.remainder() != null)
+                && enterOrderRq.getStopPrice() != 0)
             eventPublisher.publish(new OrderActivatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
 
         if (!matchResult.trades().isEmpty())
-            eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+            eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                    matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
     }
 
     void publishOpenPriceEvent(Security security) {

@@ -70,7 +70,6 @@ public class StopOrderBook {
         }
         return activatableOrders;
     }
-    
 
     public int totalSellQuantityByShareholder(Shareholder shareholder) {
         return sellQueue.stream()
@@ -79,5 +78,3 @@ public class StopOrderBook {
                 .sum();
     }
 }
-
-

@@ -11,12 +11,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-
 public abstract class Matcher {
     public abstract MatchResult match(Order newOrder);
 
-    public abstract MatchResult addOrderToOrderBook(Order remainder,LinkedList<Trade> trades, int previousQuantity);
+    public abstract MatchResult addOrderToOrderBook(Order remainder, LinkedList<Trade> trades, int previousQuantity);
 
     public MatchResult execute(Order order) {
         int previousQuantity = order.getQuantity();
@@ -25,7 +23,7 @@ public abstract class Matcher {
             return result;
 
         MatchResult result2 = addOrderToOrderBook(result.remainder(), result.trades(), previousQuantity);
-        if(result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
+        if (result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
             result = result2;
         if (result.outcome() != MatchingOutcome.EXECUTED)
             return result;
@@ -43,12 +41,12 @@ public abstract class Matcher {
         }
     }
 
-    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice){
+    public void executeTriggeredStopLimitOrders(Security security, EventPublisher eventPublisher, int lastTradePrice) {
         LinkedList<StopLimitOrder> triggeredOrders = new LinkedList<StopLimitOrder>();
-        
+
         MatchResult matchResult;
-        while(true) {
-            
+        while (true) {
+
             triggeredOrders.addAll(security.findTriggeredOrders(lastTradePrice));
             security.setLastTradePrice(lastTradePrice);
 
@@ -57,14 +55,15 @@ public abstract class Matcher {
             StopLimitOrder stopOrder = triggeredOrders.removeFirst();
             Order newOrder = stopOrder.active();
             if (newOrder.getSide() == Side.BUY)
-                newOrder.getBroker().increaseCreditBy(newOrder.getValue()); 
+                newOrder.getBroker().increaseCreditBy(newOrder.getValue());
 
             eventPublisher.publish(new OrderActivatedEvent(stopOrder.getRequestId(), newOrder.getOrderId()));
             matchResult = execute(newOrder);
-            
+
             if (!matchResult.trades().isEmpty()) {
                 lastTradePrice = matchResult.trades().getLast().getPrice();
-                eventPublisher.publish(new OrderExecutedEvent(stopOrder.getOrderId(), newOrder.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+                eventPublisher.publish(new OrderExecutedEvent(stopOrder.getOrderId(), newOrder.getOrderId(),
+                        matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }
         }
     }

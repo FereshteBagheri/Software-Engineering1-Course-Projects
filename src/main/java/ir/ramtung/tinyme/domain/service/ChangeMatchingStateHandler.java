@@ -16,7 +16,8 @@ import java.util.LinkedList;
 
 @Service
 public class ChangeMatchingStateHandler extends ReqHandler {
-    public ChangeMatchingStateHandler(SecurityRepository securityRepository, EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher, RequestControl requestControl) {
+    public ChangeMatchingStateHandler(SecurityRepository securityRepository, EventPublisher eventPublisher,
+            ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher, RequestControl requestControl) {
         this.securityRepository = securityRepository;
         this.eventPublisher = eventPublisher;
         this.continuousMatcher = continuousMatcher;
@@ -30,19 +31,19 @@ public class ChangeMatchingStateHandler extends ReqHandler {
     }
 
     @Override
-    protected void processRequest(ChangeMatchingStateRq request){
-            Security security = securityRepository.findSecurityByIsin(request.getSecurityIsin());
-            MatchingState target = request.getTargetState();
-            MatchResult result = null;
+    protected void processRequest(ChangeMatchingStateRq request) {
+        Security security = securityRepository.findSecurityByIsin(request.getSecurityIsin());
+        MatchingState target = request.getTargetState();
+        MatchResult result = null;
 
-            if (security.getState() == MatchingState.AUCTION)
-                result = openSecurity(security);
+        if (security.getState() == MatchingState.AUCTION)
+            result = openSecurity(security);
 
-            security.setMatchingState(target);
-            eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
+        security.setMatchingState(target);
+        eventPublisher.publish(new SecurityStateChangedEvent(security.getIsin(), target));
 
-            if (result != null && !result.trades().isEmpty())
-                activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
+        if (result != null && !result.trades().isEmpty())
+            activeStopLimitOrders(target, security, result.trades().getFirst().getPrice());
     };
 
     private MatchResult openSecurity(Security security) {
@@ -71,4 +72,3 @@ public class ChangeMatchingStateHandler extends ReqHandler {
             continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, openingPrice);
     }
 }
-
