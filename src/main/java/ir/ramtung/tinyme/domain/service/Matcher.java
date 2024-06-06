@@ -22,9 +22,9 @@ public abstract class Matcher {
         if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
             return result;
 
-        MatchResult result2 = addOrderToOrderBook(result.remainder(), result.trades(), previousQuantity);
-        if (result.outcome() != MatchingOutcome.NOT_ACTIVATED || result2.outcome() != MatchingOutcome.EXECUTED)
-            result = result2;
+        MatchResult enqueueRemainderResult = addOrderToOrderBook(result.remainder(), result.trades(), previousQuantity);
+        if (result.outcome() != MatchingOutcome.NOT_ACTIVATED || enqueueRemainderResult.outcome() != MatchingOutcome.EXECUTED)
+            result = enqueueRemainderResult;
         if (result.outcome() != MatchingOutcome.EXECUTED)
             return result;
 
