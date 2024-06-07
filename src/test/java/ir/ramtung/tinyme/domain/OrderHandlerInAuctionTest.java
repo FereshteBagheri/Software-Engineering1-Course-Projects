@@ -3,7 +3,6 @@ package ir.ramtung.tinyme.domain;
 import ir.ramtung.tinyme.config.MockedJMSTestConfig;
 import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.domain.entity.Order;
-import ir.ramtung.tinyme.domain.service.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.event.OpeningPriceEvent;
@@ -63,9 +62,6 @@ public class OrderHandlerInAuctionTest {
 
     @Autowired
     ChangeMatchingStateHandler stateHandler;
-
-    @Autowired
-    private ContinuousMatcher continuousMatcher;
 
     @Autowired
     private AuctionMatcher auctionMatcher;

@@ -21,8 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-
-import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.ChangeMatchingStateHandler;
 import ir.ramtung.tinyme.domain.service.OrderHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,13 +65,6 @@ public class MatchingStateChangeTest {
 
     @Autowired
     RequestControl requestControl;
-
-    @Autowired
-    private ContinuousMatcher continuousMatcher;
-
-    @Autowired
-    private AuctionMatcher auctionMatcher;
-
 
     @BeforeEach
     void setup() {
