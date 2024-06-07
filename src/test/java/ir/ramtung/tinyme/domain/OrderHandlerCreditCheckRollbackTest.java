@@ -54,6 +54,7 @@ public class OrderHandlerCreditCheckRollbackTest {
         shareholderRepository.addShareholder(shareholder);
         shareholder.incPosition(security, 100_000);
     }
+
     @Test
     void new_order_from_buyer_with_not_enough_credit_based_on_trades() {
         Broker broker1 = Broker.builder().brokerId(1).credit(100_000).build();

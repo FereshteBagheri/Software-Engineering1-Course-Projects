@@ -14,6 +14,7 @@ class StopOrderBookTest {
     private Security security;
     private List<StopLimitOrder> orders;
     private Shareholder shareholder;
+
     @BeforeEach
     void setupStopOrderBook() {
         security = Security.builder().build();
@@ -102,7 +103,7 @@ class StopOrderBookTest {
         assertThat(sellQueue.get(3).getOrderId()).isEqualTo(7);
         assertThat(sellQueue.get(4).getOrderId()).isEqualTo(6);
     }
-    
+
     @Test
     void buy_stop_order_is_activatable() {
         List<StopLimitOrder> buyQueue = security.getStopOrderBook().getBuyQueue();
@@ -125,7 +126,7 @@ class StopOrderBookTest {
         assertThat(activatableSellOrders.get(0).getOrderId()).isEqualTo(10);
         assertThat(activatableSellOrders.get(1).getOrderId()).isEqualTo(9);
     }
-    
+
     @Test
     void total_sell_quantity_by_shareholder_works() {
         int totalSellQuantity = security.getStopOrderBook().totalSellQuantityByShareholder(shareholder);

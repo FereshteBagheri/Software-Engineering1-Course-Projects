@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderRequest extends Request{
+public class OrderRequest extends Request {
     protected long requestId;
     protected long orderId;
 }

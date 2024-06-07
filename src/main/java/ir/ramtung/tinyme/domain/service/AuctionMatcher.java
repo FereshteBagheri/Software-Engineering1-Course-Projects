@@ -59,7 +59,7 @@ public class AuctionMatcher extends Matcher {
     }
 
     private void updateOrdersAfterTrade(Order buyOrder, Order sellOrder, LinkedList<Order> buyOrders,
-            LinkedList<Order> sellOrders, int tradeQuantity) {
+                                        LinkedList<Order> sellOrders, int tradeQuantity) {
         if (buyOrder.getQuantity() == sellOrder.getQuantity()) {
             handleOrderCompletion(buyOrder, buyOrders);
             handleOrderCompletion(sellOrder, sellOrders);

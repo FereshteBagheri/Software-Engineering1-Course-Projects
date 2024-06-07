@@ -76,7 +76,7 @@ public class ContinuousMatcherTest {
         orders.forEach(order -> orderBook.enqueue(order));
     }
 
-    private void setUpStopOrderBook(){
+    private void setUpStopOrderBook() {
         stopOrderBook = security.getStopOrderBook();
         stopOrders = Arrays.asList(
                 new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300, 10),
@@ -182,7 +182,7 @@ public class ContinuousMatcherTest {
                 new Order(1, security, Side.SELL, 100, 10, broker, shareholder)
         );
 
-        Order order = new IcebergOrder(1, security, Side.BUY, 120 , 10, broker, shareholder, 40 );
+        Order order = new IcebergOrder(1, security, Side.BUY, 120, 10, broker, shareholder, 40);
         MatchResult result = continuousMatcher.execute(order);
 
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
@@ -194,22 +194,22 @@ public class ContinuousMatcherTest {
     }
 
     @Test
-    void execute_triggered_stop_orders_works_when_increasing_last_price(){
+    void execute_triggered_stop_orders_works_when_increasing_last_price() {
         setUpStopOrderBook();
         continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 16350);
-        verify(eventPublisher).publish(new OrderActivatedEvent(10,11));
+        verify(eventPublisher).publish(new OrderActivatedEvent(10, 11));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        verify(eventPublisher).publish(new OrderActivatedEvent(11,12));
+        verify(eventPublisher).publish(new OrderActivatedEvent(11, 12));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 12)).isEqualTo(null);
     }
 
     @Test
-    void execute_triggered_stop_orders_works_when_decreasing_last_price(){
+    void execute_triggered_stop_orders_works_when_decreasing_last_price() {
         setUpStopOrderBook();
         continuousMatcher.executeTriggeredStopLimitOrders(security, eventPublisher, 14550);
-        verify(eventPublisher).publish(new OrderActivatedEvent(15,16));
+        verify(eventPublisher).publish(new OrderActivatedEvent(15, 16));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 16)).isEqualTo(null);
-        verify(eventPublisher).publish(new OrderActivatedEvent(16,17));
+        verify(eventPublisher).publish(new OrderActivatedEvent(16, 17));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 17)).isEqualTo(null);
     }
 
@@ -223,7 +223,7 @@ public class ContinuousMatcherTest {
     }
 
     @Test
-    void new_stop_order_is_activated_and_not_matched(){
+    void new_stop_order_is_activated_and_not_matched() {
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(1000);
@@ -234,7 +234,7 @@ public class ContinuousMatcherTest {
     }
 
     @Test
-    void new_stop_order_is_activated_and_partially_matched(){
+    void new_stop_order_is_activated_and_partially_matched() {
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 400, 15800, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(50);
@@ -244,7 +244,7 @@ public class ContinuousMatcherTest {
     }
 
     @Test
-    void new_stop_order_is_activated_and_completely_matched(){
+    void new_stop_order_is_activated_and_completely_matched() {
         StopLimitOrder newOrder = new StopLimitOrder(15, security, Side.BUY, 350, 15800, broker, shareholder, 15000, 20);
         MatchResult result = continuousMatcher.execute(newOrder);
         assertThat(result.remainder().getQuantity()).isEqualTo(0);

@@ -82,16 +82,16 @@ class SecurityTest {
         orders.forEach(order -> security.getOrderBook().enqueue(order));
 
         stopOrders = Arrays.asList(
-            new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300, 10),
-            new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350, 11),
-            new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400, 12),
-            new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500, 13),
-            new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500, 14),
-            new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600, 15),
-            new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550, 16),
-            new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500, 17),
-            new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450, 18),
-            new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400, 19)
+                new StopLimitOrder(11, security, Side.BUY, 300, 15800, broker, shareholder, 16300, 10),
+                new StopLimitOrder(12, security, Side.BUY, 43, 15500, broker, shareholder, 16350, 11),
+                new StopLimitOrder(13, security, Side.BUY, 445, 15450, broker, shareholder, 16400, 12),
+                new StopLimitOrder(14, security, Side.BUY, 526, 15450, broker, shareholder, 16500, 13),
+                new StopLimitOrder(15, security, Side.BUY, 1000, 15400, broker, shareholder, 16500, 14),
+                new StopLimitOrder(16, security, Side.SELL, 350, 15800, broker, shareholder, 14600, 15),
+                new StopLimitOrder(17, security, Side.SELL, 285, 15810, broker, shareholder, 14550, 16),
+                new StopLimitOrder(18, security, Side.SELL, 800, 15810, broker, shareholder, 14500, 17),
+                new StopLimitOrder(19, security, Side.SELL, 340, 15820, broker, shareholder, 14450, 18),
+                new StopLimitOrder(20, security, Side.SELL, 65, 15820, broker, shareholder, 14400, 19)
         );
         stopOrders.forEach(stopOrder -> security.getStopOrderBook().enqueue(stopOrder));
     }
@@ -236,7 +236,7 @@ class SecurityTest {
     }
 
     @Test
-    void enqueue_order(){
+    void enqueue_order() {
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
         security.enqueueOrder(order);
@@ -250,7 +250,7 @@ class SecurityTest {
     }
 
     @Test
-    void remove_order_by_orderID(){
+    void remove_order_by_orderID() {
         Broker broker1 = Broker.builder().credit(100000000).brokerId(1).build();
         Order order = new Order(21, security, Side.BUY, 304, 15700, broker1, shareholder);
         StopLimitOrder stopLimitOrder = new StopLimitOrder(22, security, Side.BUY, 300, 15800, broker1, shareholder, 16300, 20);
@@ -265,35 +265,35 @@ class SecurityTest {
     }
 
     @Test
-    void find_triggered_orders_buy_side(){
+    void find_triggered_orders_buy_side() {
         int lastTradePrice = 16450;
         LinkedList<StopLimitOrder> valid_activeOrders = new LinkedList<>();
-        for (int i = 11; i <= 13; i++){
-            valid_activeOrders.add((StopLimitOrder)security.getStopOrderBook().findByOrderId(Side.BUY, i));
+        for (int i = 11; i <= 13; i++) {
+            valid_activeOrders.add((StopLimitOrder) security.getStopOrderBook().findByOrderId(Side.BUY, i));
         }
         LinkedList<StopLimitOrder> activeOrders = security.findTriggeredOrders(lastTradePrice);
         assertThat(activeOrders).isEqualTo(valid_activeOrders);
     }
 
     @Test
-    void find_triggered_orders_sell_side(){
+    void find_triggered_orders_sell_side() {
         int lastTradePrice = 14530;
         LinkedList<StopLimitOrder> valid_activeOrders = new LinkedList<>();
-        for (int i = 16; i <= 17; i++){
-            valid_activeOrders.add((StopLimitOrder)security.getStopOrderBook().findByOrderId(Side.SELL, i));
+        for (int i = 16; i <= 17; i++) {
+            valid_activeOrders.add((StopLimitOrder) security.getStopOrderBook().findByOrderId(Side.SELL, i));
         }
         LinkedList<StopLimitOrder> activeOrders = security.findTriggeredOrders(lastTradePrice);
         assertThat(activeOrders).isEqualTo(valid_activeOrders);
     }
 
     @Test
-    void find_openingPrice_with_single_valid_price(){
+    void find_openingPrice_with_single_valid_price() {
         List<Order> newOrders = Arrays.asList(
-            new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
-            new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
-            new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
-            new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
-            new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+                new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
+                new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+                new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+                new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+                new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
@@ -305,7 +305,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_openingPrice_with_multiple_valid_prices_with_different_distance_to_last_trade_price(){
+    void find_openingPrice_with_multiple_valid_prices_with_different_distance_to_last_trade_price() {
         security.setLastTradePrice(15804);
         List<Order> newOrders = Arrays.asList(
                 new Order(11, security, Side.BUY, 304, 15805, broker, shareholder),
@@ -324,7 +324,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_openingPrice_with_multiple_valid_prices_with_same_difference_to_last_trade_price(){
+    void find_openingPrice_with_multiple_valid_prices_with_same_difference_to_last_trade_price() {
         security.setLastTradePrice(15803);
         List<Order> newOrders = Arrays.asList(
                 new Order(11, security, Side.BUY, 304, 15806, broker, shareholder),
@@ -343,13 +343,13 @@ class SecurityTest {
     }
 
     @Test
-    void find_open_orders(){
+    void find_open_orders() {
         List<Order> newOrders = Arrays.asList(
-            new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
-            new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
-            new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
-            new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
-            new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
+                new Order(11, security, Side.BUY, 304, 15800, broker, shareholder),
+                new Order(12, security, Side.BUY, 43, 15900, broker, shareholder),
+                new Order(13, security, Side.BUY, 445, 16000, broker, shareholder),
+                new Order(14, security, Side.SELL, 350, 15600, broker, shareholder),
+                new Order(15, security, Side.SELL, 285, 15430, broker, shareholder)
         );
         newOrders.forEach(order -> security.getOrderBook().enqueue(order));
 
@@ -361,26 +361,26 @@ class SecurityTest {
         LinkedList<Order> validBuyQueue = new LinkedList<>();
         LinkedList<Order> validSellQueue = new LinkedList<>();
 
-        for (int i = 13; i >= 11; i--){
-            validBuyQueue.add((Order)security.getOrderBook().findByOrderId(Side.BUY, i));
+        for (int i = 13; i >= 11; i--) {
+            validBuyQueue.add((Order) security.getOrderBook().findByOrderId(Side.BUY, i));
         }
-        for (int i = 15; i >= 6; i--){
-            if (i >= 14 || i==6)
-                validSellQueue.add((Order)security.getOrderBook().findByOrderId(Side.SELL, i));
+        for (int i = 15; i >= 6; i--) {
+            if (i >= 14 || i == 6)
+                validSellQueue.add((Order) security.getOrderBook().findByOrderId(Side.SELL, i));
         }
         assertThat(openBuyOrders).isEqualTo(validBuyQueue);
         assertThat(openSellOrders).isEqualTo(validSellQueue);
     }
 
     @Test
-    void opening_price_is_zero_when_tradeable_quantity_is_zero(){
+    void opening_price_is_zero_when_tradeable_quantity_is_zero() {
         CustomPair pair = security.findOpeningPrice();
         assertThat(pair.getFirst()).isEqualTo(0);
         assertThat(pair.getSecond()).isEqualTo(0);
     }
 
     @Test
-    void find_openingPrice_when_new_order_enters(){
+    void find_openingPrice_when_new_order_enters() {
         security.setLastTradePrice(15750);
         Order newOrder = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
         security.getOrderBook().enqueue(newOrder);
@@ -392,7 +392,7 @@ class SecurityTest {
     }
 
     @Test
-    void find_openingPrice_when_new_iceberg_order_enters(){
+    void find_openingPrice_when_new_iceberg_order_enters() {
         security.setLastTradePrice(15750);
         Order newIcebergOrder = new IcebergOrder(11, security, Side.BUY, 450, 15900, broker1, shareholder, 50);
         security.getOrderBook().enqueue(newIcebergOrder);
@@ -431,6 +431,7 @@ class SecurityTest {
                 assertThat(security.updateOrder(updateOrderRq, auctionMatcher).trades()).isEmpty()
         );
     }
+
     @Test
     void increasing_iceberg_peak_size_changes_priority_in_auction() {
         security = Security.builder().build();

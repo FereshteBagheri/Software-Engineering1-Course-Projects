@@ -131,14 +131,14 @@ public class MatchingStateChangeTest {
 
 
     @Test
-    void publish_change_state_from_continuous_to_auction(){
+    void publish_change_state_from_continuous_to_auction() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
     }
 
     @Test
-    void publish_change_state_from_auction_to_continuous(){
+    void publish_change_state_from_auction_to_continuous() {
         security.setMatchingState(MatchingState.AUCTION);
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
@@ -146,14 +146,14 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void publish_change_state_from_continuous_to_continuous(){
+    void publish_change_state_from_continuous_to_continuous() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         assertThat(security.getState()).isEqualTo(MatchingState.CONTINUOUS);
         verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
     }
 
     @Test
-    void publish_change_state_from_auction_to_auction(){
+    void publish_change_state_from_auction_to_auction() {
         security.setMatchingState(MatchingState.AUCTION);
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         assertThat(security.getState()).isEqualTo(MatchingState.AUCTION);
@@ -161,7 +161,7 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void no_trade_is_executed_when_tradeable_quantity_is_zero_in_auction(){
+    void no_trade_is_executed_when_tradeable_quantity_is_zero_in_auction() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         verify(eventPublisher, times(0)).publish(any(TradeEvent.class));
@@ -171,11 +171,11 @@ public class MatchingStateChangeTest {
 
 
     @Test
-    void activated_buy_stop_orders_are_added_to_order_book_after_auction_and_not_matched(){
+    void activated_buy_stop_orders_are_added_to_order_book_after_auction_and_not_matched() {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.BUY, 350, 15000, 1, shareholder.getShareholderId(), 0, 0, 15600));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(2, 27));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 27)).isNotEqualTo(null);
 
@@ -183,8 +183,8 @@ public class MatchingStateChangeTest {
         setupAuctionOrders();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
 
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 27));
 
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 27)).isEqualTo(null);
@@ -194,11 +194,11 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void activated_buy_stop_orders_are_added_to_order_book_after_auction_and_matched(){
+    void activated_buy_stop_orders_are_added_to_order_book_after_auction_and_matched() {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.BUY, 350, 15900, 1, shareholder.getShareholderId(), 0, 0, 15600));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(2, 27));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 27)).isNotEqualTo(null);
 
@@ -206,8 +206,8 @@ public class MatchingStateChangeTest {
         setupAuctionOrders();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
 
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 27));
 
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 27)).isEqualTo(null);
@@ -217,12 +217,12 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void activated_sell_stop_orders_are_added_to_order_book_after_auction_and_not_matched(){
+    void activated_sell_stop_orders_are_added_to_order_book_after_auction_and_not_matched() {
         security.setLastTradePrice(17000);
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.SELL, 30, 16000, 2, shareholder.getShareholderId(), 0, 0, 16000));
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.SELL, 35, 15000, 2, shareholder.getShareholderId(), 0, 0, 16000));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(2, 27));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 26)).isNotEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isNotEqualTo(null);
 
@@ -230,8 +230,8 @@ public class MatchingStateChangeTest {
         setupAuctionOrders();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
 
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 27));
 
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 26)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isEqualTo(null);
@@ -241,12 +241,12 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void activated_sell_stop_orders_are_added_to_order_book_after_auction_and_matched(){
+    void activated_sell_stop_orders_are_added_to_order_book_after_auction_and_matched() {
         security.setLastTradePrice(17000);
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.SELL, 30, 15000, 2, shareholder.getShareholderId(), 0, 0, 16000));
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.SELL, 35, 15000, 2, shareholder.getShareholderId(), 0, 0, 16000));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(2, 27));
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 26)).isNotEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isNotEqualTo(null);
 
@@ -254,8 +254,8 @@ public class MatchingStateChangeTest {
         setupAuctionOrders();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
 
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 27));
 
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 26)).isEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.SELL, 27)).isEqualTo(null);
@@ -267,14 +267,14 @@ public class MatchingStateChangeTest {
     @Test
     void buyer_credit_is_correct_from_auction_to_auction_with_activated_orders() {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
 
         Long initialCredit = broker1.getCredit();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.AUCTION));
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
         assertThat(broker1.getCredit()).isEqualTo(initialCredit + 445 * 200 + 43 * 100 + 350 * 15800);
     }
 
@@ -283,21 +283,21 @@ public class MatchingStateChangeTest {
         Long initialCredit = broker1.getCredit();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.AUCTION));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         assertThat(broker1.getCredit()).isEqualTo(initialCredit + 445 * 200 + 43 * 100 + 350 * 15800);
     }
 
     @Test
     void seller_credit_is_correct_from_auction_to_auction_with_activated_orders() {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
 
         long initialCredit = broker2.getCredit();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.AUCTION));
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
         assertThat(broker2.getCredit()).isEqualTo(initialCredit + (157 + 285) * 15800);
     }
 
@@ -316,7 +316,7 @@ public class MatchingStateChangeTest {
         Long initialCredit = broker1.getCredit();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.CONTINUOUS));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         assertThat(broker1.getCredit()).isEqualTo(initialCredit + 445 * 200 + 43 * 100 + 350 * 15800);
     }
 
@@ -330,32 +330,32 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void credit_is_correct_from_auction_to_continuous_with_activated_orders(){
+    void credit_is_correct_from_auction_to_continuous_with_activated_orders() {
         Long broker1initialCredit = broker1.getCredit();
         long broker2InitialCredit = broker2.getCredit();
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 26, LocalDateTime.now(), Side.BUY, 300, 16000, 1, shareholder.getShareholderId(), 0, 0, 15500));
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(2, "ABC", 27, LocalDateTime.now(), Side.BUY, 400, 15850, 1, shareholder.getShareholderId(), 0, 0, 15500));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderAcceptedEvent(2, 27));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(2, 27));
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 26)).isNotEqualTo(null);
         assertThat(stopOrderBook.findByOrderId(Side.BUY, 27)).isNotEqualTo(null);
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.CONTINUOUS));
-        verify (eventPublisher). publish(new OrderActivatedEvent(1, 26));
-        verify (eventPublisher). publish(new OrderActivatedEvent(2, 27));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 26));
+        verify(eventPublisher).publish(new OrderActivatedEvent(2, 27));
 
         assertThat(orderBook.findByOrderId(Side.BUY, 26)).isEqualTo(null);
         assertThat(orderBook.findByOrderId(Side.BUY, 27)).isEqualTo(null);
-        assertThat(broker1.getCredit()).isEqualTo(broker1initialCredit + 445 * 200 + 43 * 100 + 350 * 15800 - 193*15800 - 507 * 15810);
-        assertThat(broker2.getCredit()).isEqualTo(broker2InitialCredit + (157 + 285) * 15800 + 193*15800 + 507 * 15810);
+        assertThat(broker1.getCredit()).isEqualTo(broker1initialCredit + 445 * 200 + 43 * 100 + 350 * 15800 - 193 * 15800 - 507 * 15810);
+        assertThat(broker2.getCredit()).isEqualTo(broker2InitialCredit + (157 + 285) * 15800 + 193 * 15800 + 507 * 15810);
     }
 
     @Test
-    void trade_executed_events_are_published_after_auction(){
+    void trade_executed_events_are_published_after_auction() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
-        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC",MatchingState.CONTINUOUS));
+        stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         verify(eventPublisher).publish(new TradeEvent("ABC", 15800, 285, 1, 9));
         verify(eventPublisher).publish(new TradeEvent("ABC", 15800, 160, 1, 10));
         verify(eventPublisher).publish(new TradeEvent("ABC", 15800, 43, 2, 10));
@@ -364,7 +364,7 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void credit_does_not_change_from_continuous_to_auction(){
+    void credit_does_not_change_from_continuous_to_auction() {
         long broker2initialCredit = broker2.getCredit();
         long broker1initialCredit = broker1.getCredit();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
@@ -373,7 +373,7 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void order_book_is_correct_after_auction_no_trade_executed(){
+    void order_book_is_correct_after_auction_no_trade_executed() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
         verify(eventPublisher, times(0)).publish(any(TradeEvent.class));
@@ -382,13 +382,13 @@ public class MatchingStateChangeTest {
     }
 
     @Test
-    void order_book_is_correct_after_auction_some_trades_executed(){
+    void order_book_is_correct_after_auction_some_trades_executed() {
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.AUCTION));
         setupAuctionOrders();
         stateHandler.handleRequest(new ChangeMatchingStateRq("ABC", MatchingState.CONTINUOUS));
-        assertThat(orderBook.getBuyQueue()).isEqualTo( orderBook.getBuyQueue());
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orderBook.getBuyQueue());
         assertThat(orderBook.getSellQueue().peek().getQuantity()).isEqualTo(193);
-        assertThat(orderBook.getSellQueue().subList(1,5)).isEqualTo(regularOrders.subList(6, 10));
+        assertThat(orderBook.getSellQueue().subList(1, 5)).isEqualTo(regularOrders.subList(6, 10));
     }
 
 

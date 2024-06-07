@@ -23,9 +23,9 @@ public class OrderHandler extends ReqHandler {
     SecurityRepository securityRepository;
 
     public OrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository,
-            ShareholderRepository shareholderRepository,
-            EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher,
-            RequestControl requestControl) {
+                        ShareholderRepository shareholderRepository,
+                        EventPublisher eventPublisher, ContinuousMatcher continuousMatcher, AuctionMatcher auctionMatcher,
+                        RequestControl requestControl) {
         this.securityRepository = securityRepository;
         this.brokerRepository = brokerRepository;
         this.shareholderRepository = shareholderRepository;
@@ -37,7 +37,7 @@ public class OrderHandler extends ReqHandler {
 
     @Override
     protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
-        eventPublisher.publish(new OrderRejectedEvent(((OrderRequest)request).getRequestId(), ((OrderRequest)request).getOrderId(), ex.getReasons()));
+        eventPublisher.publish(new OrderRejectedEvent(((OrderRequest) request).getRequestId(), ((OrderRequest) request).getOrderId(), ex.getReasons()));
     }
 
     @Override
@@ -68,7 +68,9 @@ public class OrderHandler extends ReqHandler {
         security.deleteOrder(request);
         eventPublisher.publish(new OrderDeletedEvent(request.getRequestId(), request.getOrderId()));
         publishOpenPriceEvent(security);
-    };
+    }
+
+    ;
 
     private void publishEnterOrderReqEvents(MatchResult matchResult, EnterOrderRq enterOrderRq) {
         if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {

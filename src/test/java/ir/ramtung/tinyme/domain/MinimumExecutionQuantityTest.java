@@ -130,8 +130,8 @@ public class MinimumExecutionQuantityTest {
                 15800, 1, 1, 0, 400, 0);
         assertThatNoException().isThrownBy(() -> orderHandler.handleRequest(newReq));
         assertThat(orderBook.findByOrderId(Side.BUY, 11)).isEqualTo(null);
-        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
-        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
+        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5, 10));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0, 5));
     }
 
     @Test
@@ -234,8 +234,8 @@ public class MinimumExecutionQuantityTest {
         MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.MINIMUM_NOT_MATCHED);
         assertThat(result.remainder()).isEqualTo(null);
-        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
-        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
+        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5, 10));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0, 5));
     }
 
     @Test
@@ -246,8 +246,8 @@ public class MinimumExecutionQuantityTest {
         MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.MINIMUM_NOT_MATCHED);
         assertThat(result.remainder()).isEqualTo(null);
-        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5,10));
-        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0,5));
+        assertThat(orderBook.getSellQueue()).isEqualTo(orders.subList(5, 10));
+        assertThat(orderBook.getBuyQueue()).isEqualTo(orders.subList(0, 5));
     }
 
     @Test

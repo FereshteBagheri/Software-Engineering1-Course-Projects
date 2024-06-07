@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderBookTest {
     private Security security;
     private List<Order> orders;
+
     @BeforeEach
     void setupOrderBook() {
         security = Security.builder().isin("ABC").lastTradePrice(17570).build();

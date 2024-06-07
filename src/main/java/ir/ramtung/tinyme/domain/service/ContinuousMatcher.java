@@ -91,7 +91,7 @@ public class ContinuousMatcher extends Matcher {
     }
 
     private void updateOrdersAfterTrade(Order newOrder, Order matchingOrder, int matchingQuantity,
-            OrderBook orderBook) {
+                                        OrderBook orderBook) {
         if (newOrder.getQuantity() >= matchingQuantity) {
             newOrder.decreaseQuantity(matchingQuantity);
             orderBook.removeFirst(matchingOrder.getSide());

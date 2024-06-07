@@ -75,6 +75,7 @@ public class OrderHandlerTest {
         brokerRepository.addBroker(broker2);
         brokerRepository.addBroker(broker3);
     }
+
     @Test
     void new_order_matched_completely_with_one_trade() {
         Order matchingBuyOrder = new Order(100, security, Side.BUY, 1000, 15500, broker1, shareholder);
@@ -94,6 +95,7 @@ public class OrderHandlerTest {
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 300, 15450, 2, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
     }
+
     @Test
     void new_order_matched_partially_with_two_trades() {
         Order matchingBuyOrder1 = new Order(100, security, Side.BUY, 300, 15500, broker1, shareholder);
@@ -185,7 +187,7 @@ public class OrderHandlerTest {
     void update_order_causing_no_trades() {
         Order queuedOrder = new Order(200, security, Side.SELL, 500, 15450, broker1, shareholder);
         security.getOrderBook().enqueue(queuedOrder);
-        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 1000, 15450, 1, shareholder.getShareholderId(), 0,0, 0));
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 1000, 15450, 1, shareholder.getShareholderId(), 0, 0, 0));
         verify(eventPublisher).publish(new OrderUpdatedEvent(1, 200));
     }
 
@@ -212,7 +214,7 @@ public class OrderHandlerTest {
 
     @Test
     void invalid_update_with_multiple_errors() {
-        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "XXX", -1, LocalDateTime.now(), Side.SELL, 0, 0, -1, shareholder.getShareholderId(), 0,0, 0));
+        orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "XXX", -1, LocalDateTime.now(), Side.SELL, 0, 0, -1, shareholder.getShareholderId(), 0, 0, 0));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
         verify(eventPublisher).publish(orderRejectedCaptor.capture());
         OrderRejectedEvent outputEvent = orderRejectedCaptor.getValue();
@@ -237,7 +239,7 @@ public class OrderHandlerTest {
         security.getOrderBook().enqueue(queuedOrder);
         orderHandler.handleRequest(new DeleteOrderRq(1, security.getIsin(), Side.BUY, 200));
         verify(eventPublisher).publish(new OrderDeletedEvent(1, 200));
-        assertThat(buyBroker.getCredit()).isEqualTo(1_000_000 + 1000*15500);
+        assertThat(buyBroker.getCredit()).isEqualTo(1_000_000 + 1000 * 15500);
     }
 
     @Test
@@ -278,7 +280,7 @@ public class OrderHandlerTest {
         Broker broker = Broker.builder().brokerId(10).credit(10_000).build();
         brokerRepository.addBroker(broker);
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 30, 100, 10, shareholder.getShareholderId(), 0, 0, 0));
-        assertThat(broker.getCredit()).isEqualTo(10_000-30*100);
+        assertThat(broker.getCredit()).isEqualTo(10_000 - 30 * 100);
     }
 
     @Test
@@ -287,7 +289,7 @@ public class OrderHandlerTest {
         brokerRepository.addBroker(broker);
 
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 30, 100, 10, shareholder.getShareholderId(), 10, 0, 0));
-        assertThat(broker.getCredit()).isEqualTo(10_000-30*100);
+        assertThat(broker.getCredit()).isEqualTo(10_000 - 30 * 100);
     }
 
     @Test
@@ -313,9 +315,9 @@ public class OrderHandlerTest {
 
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 100, 550, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 0, 0));
 
-        assertThat(broker1.getCredit()).isEqualTo(100_000 + 30*500);
-        assertThat(broker2.getCredit()).isEqualTo(100_000 + 20*500);
-        assertThat(broker3.getCredit()).isEqualTo(100_000 - 50*500 - 50*550);
+        assertThat(broker1.getCredit()).isEqualTo(100_000 + 30 * 500);
+        assertThat(broker2.getCredit()).isEqualTo(100_000 + 20 * 500);
+        assertThat(broker3.getCredit()).isEqualTo(100_000 - 50 * 500 - 50 * 550);
     }
 
     @Test
@@ -346,8 +348,8 @@ public class OrderHandlerTest {
 
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.BUY, 100, 550, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 0, 0));
 
-        assertThat(broker1.getCredit()).isEqualTo(100_000 + 30*500);
-        assertThat(broker2.getCredit()).isEqualTo(100_000 + 20*500);
+        assertThat(broker1.getCredit()).isEqualTo(100_000 + 30 * 500);
+        assertThat(broker2.getCredit()).isEqualTo(100_000 + 20 * 500);
         assertThat(broker3.getCredit()).isEqualTo(0);
 
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
@@ -385,6 +387,7 @@ public class OrderHandlerTest {
 
         assertThat(broker1.getCredit()).isEqualTo(100_000 - 1_500);
     }
+
     @Test
     void update_sell_order_changing_price_with_no_trades_does_not_changes_sellers_credit() {
         Broker broker1 = Broker.builder().brokerId(1).credit(100_000).build();
@@ -414,9 +417,9 @@ public class OrderHandlerTest {
 
         orderHandler.handleRequest(EnterOrderRq.createUpdateOrderRq(1, "ABC", 2, LocalDateTime.now(), Side.BUY, 500, 590, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 0, 0));
 
-        assertThat(broker1.getCredit()).isEqualTo(100_000 + 350*580);
-        assertThat(broker2.getCredit()).isEqualTo(100_000 + 100*581);
-        assertThat(broker3.getCredit()).isEqualTo(100_000 + 430*550 - 350*580 - 100*581 - 50*590);
+        assertThat(broker1.getCredit()).isEqualTo(100_000 + 350 * 580);
+        assertThat(broker2.getCredit()).isEqualTo(100_000 + 100 * 581);
+        assertThat(broker3.getCredit()).isEqualTo(100_000 + 430 * 550 - 350 * 580 - 100 * 581 - 50 * 590);
     }
 
     @Test
@@ -463,7 +466,7 @@ public class OrderHandlerTest {
 
         assertThat(broker1.getCredit()).isEqualTo(100_000);
         assertThat(broker2.getCredit()).isEqualTo(100_000);
-        assertThat(broker3.getCredit()).isEqualTo(100_000 + 30*550);
+        assertThat(broker3.getCredit()).isEqualTo(100_000 + 30 * 550);
     }
 
     @Test
@@ -572,19 +575,19 @@ public class OrderHandlerTest {
     }
 
     @Test
-    void iceberg_order_add_to_queue_in_auction_state(){
+    void iceberg_order_add_to_queue_in_auction_state() {
         security.setMatchingState(MatchingState.AUCTION);
         Order icebergOrder = new IcebergOrder(7, security, Side.SELL, 300, 15450, broker2, shareholder, 100);
 
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,
-            icebergOrder.getSecurity().getIsin(),
-            icebergOrder.getOrderId(),
-            icebergOrder.getEntryTime(),
-            icebergOrder.getSide(),
-            icebergOrder.getTotalQuantity(),
-            icebergOrder.getPrice(),
-            icebergOrder.getBroker().getBrokerId(),
-            icebergOrder.getShareholder().getShareholderId(), 100, 0, 0));
+                icebergOrder.getSecurity().getIsin(),
+                icebergOrder.getOrderId(),
+                icebergOrder.getEntryTime(),
+                icebergOrder.getSide(),
+                icebergOrder.getTotalQuantity(),
+                icebergOrder.getPrice(),
+                icebergOrder.getBroker().getBrokerId(),
+                icebergOrder.getShareholder().getShareholderId(), 100, 0, 0));
 
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 7));
         assertThat(security.getOrderBook().findByOrderId(Side.SELL, 7)).isNotEqualTo(null);

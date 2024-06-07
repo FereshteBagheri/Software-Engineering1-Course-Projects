@@ -40,27 +40,27 @@ public class AuctionMatcherTest {
         shareholder.incPosition(security, 100_000);
         orderBook = security.getOrderBook();
         orders = Arrays.asList(
-            new Order(1, security, Side.BUY, 445, 16000, broker, shareholder),
-            new Order(2, security, Side.BUY, 43, 15900, broker, shareholder),
-            new Order(3, security, Side.BUY, 304, 15800, broker, shareholder),
-            new Order(4, security, Side.BUY, 304, 15700, broker, shareholder),
-            new Order(5, security, Side.BUY, 43, 15500, broker, shareholder),
-            new Order(6, security, Side.BUY, 445, 15450, broker, shareholder),
-            new Order(7, security, Side.BUY, 526, 15450, broker, shareholder),
-            new Order(8, security, Side.BUY, 1000, 15400, broker, shareholder),
-            new Order(9, security, Side.SELL, 285, 15430, broker, shareholder),
-            new Order(10, security, Side.SELL, 350, 15600, broker, shareholder),
-            new Order(11, security, Side.SELL, 350, 15800, broker, shareholder),
-            new Order(12, security, Side.SELL, 285, 15810, broker, shareholder),
-            new Order(13, security, Side.SELL, 800, 15810, broker, shareholder),
-            new Order(14, security, Side.SELL, 340, 15820, broker, shareholder),
-            new Order(15, security, Side.SELL, 65, 15820, broker, shareholder)            
+                new Order(1, security, Side.BUY, 445, 16000, broker, shareholder),
+                new Order(2, security, Side.BUY, 43, 15900, broker, shareholder),
+                new Order(3, security, Side.BUY, 304, 15800, broker, shareholder),
+                new Order(4, security, Side.BUY, 304, 15700, broker, shareholder),
+                new Order(5, security, Side.BUY, 43, 15500, broker, shareholder),
+                new Order(6, security, Side.BUY, 445, 15450, broker, shareholder),
+                new Order(7, security, Side.BUY, 526, 15450, broker, shareholder),
+                new Order(8, security, Side.BUY, 1000, 15400, broker, shareholder),
+                new Order(9, security, Side.SELL, 285, 15430, broker, shareholder),
+                new Order(10, security, Side.SELL, 350, 15600, broker, shareholder),
+                new Order(11, security, Side.SELL, 350, 15800, broker, shareholder),
+                new Order(12, security, Side.SELL, 285, 15810, broker, shareholder),
+                new Order(13, security, Side.SELL, 800, 15810, broker, shareholder),
+                new Order(14, security, Side.SELL, 340, 15820, broker, shareholder),
+                new Order(15, security, Side.SELL, 65, 15820, broker, shareholder)
         );
         orders.forEach(order -> orderBook.enqueue(order));
     }
 
     @Test
-    void check_matcher_for_list_of_orders(){
+    void check_matcher_for_list_of_orders() {
         CustomPair pair = security.findOpeningPrice();
         // BuyOrder List -> 1, 2, 3
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
@@ -71,7 +71,7 @@ public class AuctionMatcherTest {
         int openingPrice = pair.getFirst();
 
         Order afterFirstTradeOrder1 = new Order(orderBook.findByOrderId(Side.BUY, 1).getOrderId(), orderBook.findByOrderId(Side.BUY, 1).getSecurity(), orderBook.findByOrderId(Side.BUY, 1).getSide(), 160, orderBook.findByOrderId(Side.BUY, 1).getPrice(), orderBook.findByOrderId(Side.BUY, 1).getBroker(), orderBook.findByOrderId(Side.BUY, 1).getShareholder(), orderBook.findByOrderId(Side.BUY, 1).getEntryTime());
-        Order afterFirstTradeOrder10= new Order(orderBook.findByOrderId(Side.SELL, 10).getOrderId(), orderBook.findByOrderId(Side.SELL, 10).getSecurity(), orderBook.findByOrderId(Side.SELL, 10).getSide(), 190, orderBook.findByOrderId(Side.SELL, 10).getPrice(), orderBook.findByOrderId(Side.SELL, 10).getBroker(), orderBook.findByOrderId(Side.SELL, 10).getShareholder(), orderBook.findByOrderId(Side.SELL, 10).getEntryTime());
+        Order afterFirstTradeOrder10 = new Order(orderBook.findByOrderId(Side.SELL, 10).getOrderId(), orderBook.findByOrderId(Side.SELL, 10).getSecurity(), orderBook.findByOrderId(Side.SELL, 10).getSide(), 190, orderBook.findByOrderId(Side.SELL, 10).getPrice(), orderBook.findByOrderId(Side.SELL, 10).getBroker(), orderBook.findByOrderId(Side.SELL, 10).getShareholder(), orderBook.findByOrderId(Side.SELL, 10).getEntryTime());
         Order afterSecondTradeOrder10 = new Order(orderBook.findByOrderId(Side.SELL, 10).getOrderId(), orderBook.findByOrderId(Side.SELL, 10).getSecurity(), orderBook.findByOrderId(Side.SELL, 10).getSide(), 147, orderBook.findByOrderId(Side.SELL, 10).getPrice(), orderBook.findByOrderId(Side.SELL, 10).getBroker(), orderBook.findByOrderId(Side.SELL, 10).getShareholder(), orderBook.findByOrderId(Side.SELL, 10).getEntryTime());
         Order afterFirstTradeOrder3 = new Order(orderBook.findByOrderId(Side.BUY, 3).getOrderId(), orderBook.findByOrderId(Side.BUY, 3).getSecurity(), orderBook.findByOrderId(Side.BUY, 3).getSide(), 157, orderBook.findByOrderId(Side.BUY, 3).getPrice(), orderBook.findByOrderId(Side.BUY, 3).getBroker(), orderBook.findByOrderId(Side.BUY, 3).getShareholder(), orderBook.findByOrderId(Side.BUY, 3).getEntryTime());
 
@@ -89,7 +89,7 @@ public class AuctionMatcherTest {
     }
 
     @Test
-    void check_matcher_for_one_order(){
+    void check_matcher_for_one_order() {
         orderBook.removeByOrderId(Side.BUY, 1);
         orderBook.removeByOrderId(Side.BUY, 2);
         orderBook.removeByOrderId(Side.BUY, 3);
@@ -114,7 +114,7 @@ public class AuctionMatcherTest {
     }
 
     @Test
-    void check_matcher_for_one_iceberg_order(){
+    void check_matcher_for_one_iceberg_order() {
         orderBook.removeByOrderId(Side.BUY, 1);
         orderBook.removeByOrderId(Side.BUY, 2);
         orderBook.removeByOrderId(Side.BUY, 3);

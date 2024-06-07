@@ -106,7 +106,7 @@ public class OrderBook {
     }
 
     public CustomPair calculateTradeableQuantityAndSellPrice(int buyPrice, int lastTradePrice,
-            int maxTradeableQuantityBuyPrice) {
+                                                             int maxTradeableQuantityBuyPrice) {
         int maxFulfilledSellQuantity = 0;
         int nearestSellPrice = Integer.MIN_VALUE;
 
@@ -164,7 +164,7 @@ public class OrderBook {
     }
 
     private int finalizeOpeningPrice(int lastTradePrice, int openingPrice, int maxFulfilledSellPriceByBuy,
-            int tradeableQuantity) {
+                                     int tradeableQuantity) {
         if (tradeableQuantity == 0) {
             return 0;
         }
@@ -179,7 +179,7 @@ public class OrderBook {
     }
 
     private boolean shouldUpdateNearestSellPrice(int maxFulfilledSellQuantity, int maxTradeableQuantityBuyPrice,
-            int lastTradePrice, int nearestSellPrice, Order sellOrder) {
+                                                 int lastTradePrice, int nearestSellPrice, Order sellOrder) {
         return maxFulfilledSellQuantity < maxTradeableQuantityBuyPrice ||
                 Math.abs(lastTradePrice - nearestSellPrice) > Math.abs(lastTradePrice - sellOrder.getPrice());
     }

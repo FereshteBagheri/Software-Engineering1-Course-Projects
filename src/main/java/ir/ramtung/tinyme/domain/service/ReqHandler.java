@@ -14,13 +14,19 @@ public abstract class ReqHandler {
     RequestControl requestControl;
 
     protected void processRequest(EnterOrderRq request) throws InvalidRequestException {
-    };
+    }
+
+    ;
 
     protected void processRequest(DeleteOrderRq request) throws InvalidRequestException {
-    };
+    }
+
+    ;
 
     protected void processRequest(ChangeMatchingStateRq request) {
-    };
+    }
+
+    ;
 
     protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
     }

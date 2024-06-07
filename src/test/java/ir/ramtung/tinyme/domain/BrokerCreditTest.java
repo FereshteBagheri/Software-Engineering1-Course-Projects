@@ -81,7 +81,7 @@ public class BrokerCreditTest {
         long creditBeforeSelling = broker2.getCredit();
         Order new_order = new Order(11, security, Side.SELL, 5, 15700, broker2, shareholder);
         continuousMatcher.match(new_order);
-        assertThat(broker2.getCredit()).isEqualTo(creditBeforeSelling + 5*15700);
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeSelling + 5 * 15700);
     }
 
     @Test
@@ -89,24 +89,24 @@ public class BrokerCreditTest {
         long creditBeforeBuying = broker1.getCredit();
         Order new_order = new Order(11, security, Side.BUY, 5, 15900, broker1, shareholder);
         continuousMatcher.match(new_order);
-        assertThat(broker1.getCredit()).isEqualTo(creditBeforeBuying - 5*15800);
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeBuying - 5 * 15800);
     }
 
     @Test
     void decrease_buyer_credit_after_partially_matched() {
-        broker2.increaseCreditBy(350*15800);
+        broker2.increaseCreditBy(350 * 15800);
         Order new_order = new Order(11, security, Side.BUY, 356, 15805, broker2, shareholder);
         continuousMatcher.execute(new_order);
-        assertThat(broker2.getCredit()).isEqualTo(100000+350*15800 - 6*15805);
+        assertThat(broker2.getCredit()).isEqualTo(100000 + 350 * 15800 - 6 * 15805);
     }
 
     @Test
     void rollback_if_not_enough_credit_for_queue() {
-        broker2.increaseCreditBy(350*15800);
+        broker2.increaseCreditBy(350 * 15800);
         Order new_order = new Order(11, security, Side.BUY, 800, 15810, broker2, shareholder);
         MatchResult result = continuousMatcher.execute(new_order);
         assertThat(result.outcome()).isEqualTo(MatchingOutcome.NOT_ENOUGH_CREDIT);
-        assertThat(broker2.getCredit()).isEqualTo(100000+350*15800);
+        assertThat(broker2.getCredit()).isEqualTo(100000 + 350 * 15800);
     }
 
     @Test
@@ -136,14 +136,14 @@ public class BrokerCreditTest {
     @Test
     void unchanged_seller_credit_after_sellOrder_deletion() {
         long creditBeforeOrder = broker2.getCredit();
-        DeleteOrderRq deleteReq = new DeleteOrderRq(1,"ABC",Side.SELL,6);
+        DeleteOrderRq deleteReq = new DeleteOrderRq(1, "ABC", Side.SELL, 6);
         assertThatNoException().isThrownBy(() -> security.deleteOrder(deleteReq));
         assertThat(broker2.getCredit()).isEqualTo(creditBeforeOrder);
     }
 
     @Test
     void rollback_credit_after_buyOrder_deletion() {
-        DeleteOrderRq deleteReq = new DeleteOrderRq(1,"ABC",Side.SELL,6);
+        DeleteOrderRq deleteReq = new DeleteOrderRq(1, "ABC", Side.SELL, 6);
         long creditBeforeRemove = broker1.getCredit();
         assertThatNoException().isThrownBy(() -> security.deleteOrder(deleteReq));
         assertThat(broker1.getCredit()).isEqualTo(creditBeforeRemove);
@@ -153,9 +153,9 @@ public class BrokerCreditTest {
     void decrease_buyer_credit_if_order_maintains_priority() {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
-                15450, 1, 1, 0,0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate - 45*15450);
+                15450, 1, 1, 0, 0, 0);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate - 45 * 15450);
     }
 
     @Test
@@ -163,8 +163,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 400,
                 15450, 1, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate + 45*15450);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate + 45 * 15450);
     }
 
     @Test
@@ -172,8 +172,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker2.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 6, LocalDateTime.now(), Side.SELL, 400,
                 15800, 2, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker2.getCredit()).isEqualTo( creditBeforeUpdate);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeUpdate);
     }
 
     @Test
@@ -181,8 +181,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 300,
                 15400, 1, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate + 304*15700 - 300*15400);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate + 304 * 15700 - 300 * 15400);
     }
 
     @Test
@@ -190,8 +190,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 445,
                 15750, 1, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate + 445*15450 - 445*15750);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate + 445 * 15450 - 445 * 15750);
     }
 
     @Test
@@ -199,8 +199,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 350,
                 15800, 1, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate + 445*15450 - 350*15800);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate + 445 * 15450 - 350 * 15800);
     }
 
     @Test
@@ -208,8 +208,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker1.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 445,
                 15805, 1, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker1.getCredit()).isEqualTo( creditBeforeUpdate + 445*15450 - 350*15800 - 95*15805);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeUpdate + 445 * 15450 - 350 * 15800 - 95 * 15805);
     }
 
     @Test
@@ -217,16 +217,17 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker2.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 400,
                 15750, 2, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker2.getCredit()).isEqualTo( creditBeforeUpdate);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeUpdate);
     }
+
     @Test
     void increase_seller_credit_if_order_loses_priority_and_completely_matches() {
         long creditBeforeUpdate = broker2.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 304,
                 15700, 2, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker2.getCredit()).isEqualTo( creditBeforeUpdate + 15700*304);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeUpdate + 15700 * 304);
     }
 
     @Test
@@ -234,8 +235,8 @@ public class BrokerCreditTest {
         long creditBeforeUpdate = broker2.getCredit();
         EnterOrderRq updateReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 350,
                 15700, 2, 1, 0, 0, 0);
-        assertThatNoException().isThrownBy( () -> security.updateOrder(updateReq, continuousMatcher));
-        assertThat(broker2.getCredit()).isEqualTo( creditBeforeUpdate + 15700*304);
+        assertThatNoException().isThrownBy(() -> security.updateOrder(updateReq, continuousMatcher));
+        assertThat(broker2.getCredit()).isEqualTo(creditBeforeUpdate + 15700 * 304);
     }
 
     @Test
@@ -257,16 +258,16 @@ public class BrokerCreditTest {
     }
 
     @Test
-    void broker_credit_in_auction_matcher_excute_only(){
+    void broker_credit_in_auction_matcher_excute_only() {
         security.setMatchingState(MatchingState.AUCTION);
-        broker2.increaseCreditBy(350*15805);
+        broker2.increaseCreditBy(350 * 15805);
         Order new_order = new Order(11, security, Side.BUY, 356, 15805, broker2, shareholder);
         auctionMatcher.execute(new_order);
-        assertThat(broker2.getCredit()).isEqualTo(100000 - 6*15805);
+        assertThat(broker2.getCredit()).isEqualTo(100000 - 6 * 15805);
     }
 
     @Test
-    void broker_credit_in_auction_matcher_after_match(){
+    void broker_credit_in_auction_matcher_after_match() {
         security.setMatchingState(MatchingState.AUCTION);
         Order new_order = new Order(11, security, Side.BUY, 450, 15900, broker1, shareholder);
         auctionMatcher.execute(new_order);
@@ -281,9 +282,9 @@ public class BrokerCreditTest {
 
         auctionMatcher.match(openBuyOrders, openSellOrders, pair.getFirst());
         // openingPrice = 15810 -> 15900 - 15810 = 90
-        assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90*450 + 15810 * 100);
+        assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90 * 450 + 15810 * 100);
         assertThat(broker2.getCredit()).isEqualTo(creditBeforeMatchBroker2 + 15810 * 350);
-        
+
     }
 
 }

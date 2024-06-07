@@ -49,13 +49,10 @@ public final class MatchResult {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        if (obj == null || obj.getClass() != this.getClass())
-            return false;
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (MatchResult) obj;
-        return Objects.equals(this.remainder, that.remainder) &&
-                Objects.equals(this.trades, that.trades);
+        return Objects.equals(this.remainder, that.remainder) && Objects.equals(this.trades, that.trades);
     }
 
     @Override
@@ -65,9 +62,7 @@ public final class MatchResult {
 
     @Override
     public String toString() {
-        return "MatchResult[" +
-                "remainder=" + remainder + ", " +
-                "trades=" + trades + ']';
+        return "MatchResult[" + "remainder=" + remainder + ", " + "trades=" + trades + ']';
     }
 
 }

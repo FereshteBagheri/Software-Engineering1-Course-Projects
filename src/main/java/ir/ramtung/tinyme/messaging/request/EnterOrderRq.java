@@ -27,7 +27,7 @@ public class EnterOrderRq extends OrderRequest {
     private int stopPrice;
 
     private EnterOrderRq(OrderEntryType orderEntryType, long requestId, String securityIsin, long orderId, LocalDateTime entryTime, Side side, int quantity,
-         int price, long brokerId, long shareholderId, int peakSize, int minimumExecutionQuantity, int stopPrice) {
+                         int price, long brokerId, long shareholderId, int peakSize, int minimumExecutionQuantity, int stopPrice) {
         this.requestType = orderEntryType;
         this.requestId = requestId;
         this.securityIsin = securityIsin;

@@ -16,20 +16,20 @@ public class StopLimitOrder extends Order {
     long requestId;
 
     public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-            Shareholder shareholder, LocalDateTime entryTime, int stopPrice, OrderStatus status, long requestId) {
+                          Shareholder shareholder, LocalDateTime entryTime, int stopPrice, OrderStatus status, long requestId) {
         super(orderId, security, side, quantity, price, broker, shareholder, entryTime, status);
         this.stopPrice = stopPrice;
         this.requestId = requestId;
     }
 
     public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-            Shareholder shareholder, LocalDateTime entryTime, int stopPrice, long requestId) {
+                          Shareholder shareholder, LocalDateTime entryTime, int stopPrice, long requestId) {
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice, OrderStatus.NEW,
                 requestId);
     }
 
     public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-            Shareholder shareholder, int stopPrice, long requestId) {
+                          Shareholder shareholder, int stopPrice, long requestId) {
         super(orderId, security, side, quantity, price, broker, shareholder);
         this.stopPrice = stopPrice;
         this.requestId = requestId;
