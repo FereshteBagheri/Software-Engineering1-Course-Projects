@@ -7,7 +7,5 @@ import lombok.NoArgsConstructor;
 @Data
 
 public class Request {
-    protected long requestId;
-    protected long orderId;
     protected String securityIsin;
 }

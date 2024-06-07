@@ -37,7 +37,7 @@ public class OrderHandler extends ReqHandler {
 
     @Override
     protected void handleInvalidRequest(Request request, InvalidRequestException ex) {
-        eventPublisher.publish(new OrderRejectedEvent(request.getRequestId(), request.getOrderId(), ex.getReasons()));
+        eventPublisher.publish(new OrderRejectedEvent(((OrderRequest)request).getRequestId(), ((OrderRequest)request).getOrderId(), ex.getReasons()));
     }
 
     @Override

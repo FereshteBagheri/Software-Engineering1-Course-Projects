@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteOrderRq extends Request {
+public class DeleteOrderRq extends OrderRequest {
     private Side side;
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
