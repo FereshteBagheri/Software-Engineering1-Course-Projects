@@ -248,8 +248,8 @@ public class BrokerCreditTest {
         try {
             result = security.updateOrder(updateReq, continuousMatcher);
         } catch (Exception e) {
-            e.printStackTrace(); // This will print the stack trace of the exception
-            System.out.println(e.getMessage()); // This will print the message of the exception
+            e.printStackTrace(); 
+            System.out.println(e.getMessage());
         }
         if (result != null) {
             assertThat(result.outcome()).isEqualTo(MatchingOutcome.NOT_ENOUGH_CREDIT);
@@ -281,7 +281,6 @@ public class BrokerCreditTest {
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
 
         auctionMatcher.match(openBuyOrders, openSellOrders, pair.getFirst());
-        // openingPrice = 15810 -> 15900 - 15810 = 90
         assertThat(broker1.getCredit()).isEqualTo(creditBeforeMatchBroker1 + 90 * 450 + 15810 * 100);
         assertThat(broker2.getCredit()).isEqualTo(creditBeforeMatchBroker2 + 15810 * 350);
 

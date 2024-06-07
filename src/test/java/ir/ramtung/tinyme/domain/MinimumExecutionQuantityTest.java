@@ -97,7 +97,6 @@ public class MinimumExecutionQuantityTest {
         EnterOrderRq newReq = EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 0, 0);
         assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
-        // to do: this is pointless after removing previous constructor
     }
 
     @Test
@@ -112,7 +111,6 @@ public class MinimumExecutionQuantityTest {
         EnterOrderRq newReq = EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 490,
                 15450, 1, 1, 0, 0, 0);
         assertThat(newReq.getMinimumExecutionQuantity()).isEqualTo(0);
-        // to do: this is pointless after removing previous constructor
     }
 
     @Test

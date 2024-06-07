@@ -62,12 +62,8 @@ public class AuctionMatcherTest {
     @Test
     void check_matcher_for_list_of_orders() {
         CustomPair pair = security.findOpeningPrice();
-        // BuyOrder List -> 1, 2, 3
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
-        // SellOrder List -> 9, 10, 11
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
-        // Exchanged Quantity = 792
-        // Opening Price = 15800
         int openingPrice = pair.getFirst();
 
         Order afterFirstTradeOrder1 = new Order(orderBook.findByOrderId(Side.BUY, 1).getOrderId(), orderBook.findByOrderId(Side.BUY, 1).getSecurity(), orderBook.findByOrderId(Side.BUY, 1).getSide(), 160, orderBook.findByOrderId(Side.BUY, 1).getPrice(), orderBook.findByOrderId(Side.BUY, 1).getBroker(), orderBook.findByOrderId(Side.BUY, 1).getShareholder(), orderBook.findByOrderId(Side.BUY, 1).getEntryTime());
@@ -101,8 +97,6 @@ public class AuctionMatcherTest {
         CustomPair pair = security.findOpeningPrice();
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
-        // Exchanged Quantity = 450
-        // Opening Price = 15810
         int openingPrice = pair.getFirst();
         Order afterFirstTradeOrder16 = new Order(orderBook.findByOrderId(Side.BUY, 16).getOrderId(), orderBook.findByOrderId(Side.BUY, 16).getSecurity(), orderBook.findByOrderId(Side.BUY, 16).getSide(), 100, orderBook.findByOrderId(Side.BUY, 16).getPrice(), orderBook.findByOrderId(Side.BUY, 16).getBroker(), orderBook.findByOrderId(Side.BUY, 16).getShareholder(), orderBook.findByOrderId(Side.BUY, 16).getEntryTime());
         LinkedList<Trade> validTrades = new LinkedList<>();
@@ -126,8 +120,6 @@ public class AuctionMatcherTest {
         CustomPair pair = security.findOpeningPrice();
         LinkedList<Order> openBuyOrders = security.findOpenOrders(pair.getFirst(), Side.BUY);
         LinkedList<Order> openSellOrders = security.findOpenOrders(pair.getFirst(), Side.SELL);
-        // Exchanged Quantity = 450
-        // Opening Price = 15810
         int openingPrice = pair.getFirst();
         MatchResult matchResult = auctionMatcher.match(openBuyOrders, openSellOrders, openingPrice);
         System.out.println(matchResult);

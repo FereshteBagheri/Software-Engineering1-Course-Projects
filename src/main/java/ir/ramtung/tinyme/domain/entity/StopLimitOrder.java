@@ -35,7 +35,6 @@ public class StopLimitOrder extends Order {
         this.requestId = requestId;
     }
 
-    // we can ignore snapshot functions for this type of order
     @Override
     public Order snapshot() {
         return new StopLimitOrder(orderId, security, side, quantity, price, broker, shareholder, entryTime, stopPrice,
