@@ -1,5 +1,7 @@
 package ir.ramtung.tinyme.domain.entity;
 
+
+import ir.ramtung.tinyme.domain.factory.OrderFactorySelector;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
@@ -8,6 +10,7 @@ import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.request.MatchingState;
 import lombok.Builder;
 import lombok.Getter;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,7 +33,7 @@ public class Security {
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
         if (!shareholderHasEnoughPosition(enterOrderRq, shareholder, enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
-        Order order = createOrderFromRequest(enterOrderRq, broker, shareholder);
+        Order order = OrderFactorySelector.getFactory(enterOrderRq).createOrder(enterOrderRq, this, broker, shareholder);
         return matcher.execute(order);
     }
 
@@ -134,22 +137,6 @@ public class Security {
                 + stopOrderBook.totalSellQuantityByShareholder(shareholder);
     }
 
-    private Order createOrderFromRequest(EnterOrderRq request, Broker broker, Shareholder shareholder) {
-        if (request.getStopPrice() != 0)
-            return new StopLimitOrder(request.getOrderId(), this, request.getSide(),
-                    request.getQuantity(), request.getPrice(), broker, shareholder,
-                    request.getEntryTime(), request.getStopPrice(), request.getRequestId());
-        else if (request.getPeakSize() == 0)
-            return new Order(request.getOrderId(), this, request.getSide(),
-                    request.getQuantity(), request.getPrice(), broker, shareholder,
-                    request.getEntryTime(), request.getMinimumExecutionQuantity(), false);
-        else
-            return new IcebergOrder(request.getOrderId(), this, request.getSide(),
-                    request.getQuantity(), request.getPrice(), broker, shareholder,
-                    request.getEntryTime(), request.getPeakSize(),
-                    request.getMinimumExecutionQuantity(), false);
-    }
-
     private Order findOrderByOrderId(Side side, long orderId) {
         Order order = orderBook.findByOrderId(side, orderId);
         if (order == null)
@@ -180,8 +167,8 @@ public class Security {
         return order.isQuantityIncreased(updateOrderRq.getQuantity())
                 || updateOrderRq.getPrice() != order.getPrice()
                 || ((order instanceof IcebergOrder icebergOrder)
-                        && (icebergOrder.getPeakSize() < updateOrderRq.getPeakSize()))
+                && (icebergOrder.getPeakSize() < updateOrderRq.getPeakSize()))
                 || ((order instanceof StopLimitOrder stopLimitOrder)
-                        && (stopLimitOrder.getStopPrice() != updateOrderRq.getStopPrice()));
+                && (stopLimitOrder.getStopPrice() != updateOrderRq.getStopPrice()));
     }
 }
