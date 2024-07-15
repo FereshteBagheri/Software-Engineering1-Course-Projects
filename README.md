@@ -1,4 +1,4 @@
-# Matching Engine Documentation
+# Tiny Matching Engine
 
 This repository contains the implementation of a Matching Engine, designed as part of the Software Engineering 1 course at the University of Tehran, Spring 2024. The Matching Engine facilitates the processing of buy and sell orders in a stock exchange market.
 
