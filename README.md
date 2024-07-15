@@ -4,7 +4,7 @@ This repository contains the implementation of a Matching Engine, designed as pa
 
 ## New Features Implemented
 
-This project builds upon the TinyME Matching Engine with several new features implemented during Spring 2024. The enhancements include:
+This project builds upon the TinyME Matching Engine with several new features implemented. The enhancements include:
 
 - **Minimum Execution Quantity (MEQ)**
   - Implemented MEQ functionality to ensure orders meet minimum quantity requirements upon entry.
