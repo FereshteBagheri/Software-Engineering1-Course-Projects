@@ -27,6 +27,7 @@ public class Broker {
         credit -= amount;
     }
 
+
     public boolean hasEnoughCredit(long amount) {
         return credit >= amount;
     }
